@@ -2,14 +2,14 @@
 
 A lightweight 2D mini-engine built from scratch in **C++** using **SDL2**, focused on core engine and gameplay fundamentals.
 
-This project was created as a **portfolio engine demo** for a Summer 2026 game development co-op.
+This project was created as a **portfolio engine demo**.
 
 ---
 
 ## 🎥 Demo
 
 👉 **Demo video:**  
-PASTE_YOUR_DEMO_LINK_HERE
+(https://github.com/JaswinderJattana-gdev/MiniEngineSDL2/tree/main/media)
 
 (Click the link to watch the engine demo: movement, animation, dash, particles, collision, and camera.)
 
