@@ -1,0 +1,7 @@
+{
+  "name": "mini-engine-sdl2",
+  "version-string": "0.1.0",
+  "dependencies": [
+    "sdl2"
+  ]
+}
