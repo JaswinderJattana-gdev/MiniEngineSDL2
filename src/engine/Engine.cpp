@@ -56,7 +56,7 @@ bool Engine::Init()
     ctx_.windowH = windowH_;
 
 #if ME_DEBUG
-    // Debug convenience: let the loop run freely unless you explicitly enable vsync in config
+    // Debug convenience: let the loop run freely unless explicitly enabled vsync in config
     // ctx_.engineCfg.useVsync = false;
 #endif
 
@@ -219,3 +219,4 @@ void Engine::Shutdown()
     renderer_.Shutdown();
     SDL_Quit();
 }
+
