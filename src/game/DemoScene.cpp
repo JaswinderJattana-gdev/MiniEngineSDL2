@@ -72,12 +72,12 @@ void DemoScene::Update(double dtSeconds, const Input& input, const EngineContext
 
     auto pickDirRow = [](double x, double y) -> int
         {
-            // x,y are assumed normalized-ish. Y- is up.
+            // x,y are assumed normalized. Y- is up.
             // Returns row index using: E,NE,N,NW,W,SW,S,SE
             if (x == 0.0 && y == 0.0) return -1;
 
             // Angle where 0 is East, counter-clockwise positive
-            const double ang = std::atan2(-y, x); // -y because screen y grows downward
+            const double ang = std::atan2(-y, x);
             // Convert to 0..2pi
             double a = ang;
             if (a < 0.0) a += 6.283185307179586;
@@ -196,7 +196,7 @@ void DemoScene::Update(double dtSeconds, const Input& input, const EngineContext
     {
         dustSpawnAcc_ += dtSeconds;
 
-        // spawn rate: 30 particles/sec (tweak later)
+        // spawn rate
         const double spawnInterval = 1.0 / 30.0;
 
         while (dustSpawnAcc_ >= spawnInterval)
@@ -262,7 +262,7 @@ void DemoScene::Render(Renderer& renderer, const EngineContext& ctx)
 
     if (shakeTimeLeft_ > 0.0)
     {
-        // simple deterministic shake (no RNG)
+        // simple deterministic shake
         const int t = static_cast<int>(SDL_GetTicks() / 16);
         const double sx = (t % 2 == 0) ? -shakeStrength_ : shakeStrength_;
         const double sy = (t % 3 == 0) ? -shakeStrength_ : shakeStrength_;
@@ -469,7 +469,7 @@ void DemoScene::OnEnter()
 
     if (ctx_.renderer && ctx_.renderer->Raw())
     {
-        // IMPORTANT: match these to your actual sheet!
+        // Sprite Sheet specifications
         const int frameW = 138;
         const int frameH = 138;
         const int cols = 8; // frames per direction
@@ -481,7 +481,7 @@ void DemoScene::OnEnter()
         if (!sheetLoaded_)
             Log::Warn("Could not load assets/player_sheet.bmp. Falling back to rectangle.");
 
-        // Walk animation: 8 frames at 10 fps (tweak later)
+        // Walk animation: 8 frames at 10 fps 
         anim_.SetFrames(walkStartCol_, walkFrameCount_, walkFps_);
     }
     else
@@ -492,12 +492,12 @@ void DemoScene::OnEnter()
     obstacles_.clear();
 
     // --- Tuning knobs ---
-    const int cell = 320;        // spacing between obstacle "cells" (bigger = less dense)
-    const int margin = 120;      // keep obstacles away from world edges
+    const int cell = 320;        // spacing between obstacle "cells" 
+    const int margin = 120;      // keeping obstacles away from world edges
     const int maxPerRow = (worldW_ - 2 * margin) / cell;
     const int maxPerCol = (worldH_ - 2 * margin) / cell;
 
-    // Deterministic hash (no RNG) -> returns 0..(mod-1)
+    // Deterministic hash -> returns 0..(mod-1)
     auto hash2 = [](int x, int y, int mod) -> int
         {
             // cheap integer hash
@@ -513,7 +513,7 @@ void DemoScene::OnEnter()
         // keep a clear area around the initial player spawn
         const int safeW = 500;
         const int safeH = 350;
-        const int sx = 200;   // if your spawn is different, adjust these two lines
+        const int sx = 200;   // set to spawn point 
         const int sy = 200;
         spawnSafe = SDL_Rect{ sx - safeW / 2, sy - safeH / 2, safeW, safeH };
     }
@@ -529,7 +529,7 @@ void DemoScene::OnEnter()
         for (int gx = 0; gx <= maxPerRow; ++gx)
         {
             // Probability gate (lower => fewer obstacles)
-            // 0..99; place only if < threshold
+            // 0..99; places obstacles only if < threshold
             const int roll = hash2(gx, gy, 100);
             if (roll >= 30) // ~% filled;decrease for sparser, increase for denser
                 continue;
@@ -591,3 +591,4 @@ void DemoScene::OnExit()
 {
     Log::Info("DemoScene exit");
 }
+
