@@ -33,8 +33,8 @@ bool Texture2D::LoadFromBMP(SDL_Renderer* renderer, const std::string& path,
 
     if (useColorKey)
     {
-        // 1) First, convert near-white pixels into pure key color to reduce halo.
-        // Increase threshold to remove more halo; decrease if it eats character edges.
+        // 1) convert near-white pixels into pure key color to reduce halo.
+        // Increase threshold to remove more halo; decrease if eats character edges.
         const Uint8 threshold = 250;
 
         if (SDL_LockSurface(surf) == 0)
@@ -67,7 +67,7 @@ bool Texture2D::LoadFromBMP(SDL_Renderer* renderer, const std::string& path,
             SDL_UnlockSurface(surf);
         }
 
-        // 2) Now set the color key (exact key color becomes transparent)
+        // 2) set the color key (exact key color becomes transparent)
         const Uint32 key = SDL_MapRGB(surf->format, keyR, keyG, keyB);
         if (SDL_SetColorKey(surf, SDL_TRUE, key) != 0)
         {
@@ -91,4 +91,5 @@ bool Texture2D::LoadFromBMP(SDL_Renderer* renderer, const std::string& path,
     SDL_SetTextureBlendMode(tex_, SDL_BLENDMODE_BLEND);
 
     return true;
+
 }
