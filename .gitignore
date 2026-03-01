@@ -1,0 +1,20 @@
+# Visual Studio / VS Code
+.vs/
+.vscode/
+
+# CMake build output
+out/
+build/
+cmake-build-*/
+
+# Compiled binaries
+*.exe
+*.dll
+*.pdb
+*.obj
+*.lib
+*.ilk
+
+# OS junk
+.DS_Store
+Thumbs.db
