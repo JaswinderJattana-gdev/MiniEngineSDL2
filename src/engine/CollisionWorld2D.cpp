@@ -4,8 +4,13 @@
 Vec2 CollisionWorld2D::ClampTopLeft(const Vec2& topLeft, int objW, int objH) const
 {
     Vec2 out = topLeft;
-    out.x = std::clamp(out.x, 0.0, static_cast<double>(worldW_ - objW));
-    out.y = std::clamp(out.y, 0.0, static_cast<double>(worldH_ - objH));
+
+    const double maxX = std::max(0.0, static_cast<double>(worldW_ - objW));
+    const double maxY = std::max(0.0, static_cast<double>(worldH_ - objH));
+
+    out.x = std::clamp(out.x, 0.0, maxX);
+    out.y = std::clamp(out.y, 0.0, maxY);
+
     return out;
 }
 

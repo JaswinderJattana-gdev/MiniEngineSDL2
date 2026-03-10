@@ -11,6 +11,8 @@
 #include "../engine/Actions.h"
 #include "../engine/Texture2D.h"
 #include "../engine/WorldRender2D.h"
+#include "../engine/LevelData.h"
+#include "../engine/LevelIO.h"
 
 #include <algorithm>
 #include <memory>
@@ -379,103 +381,121 @@ void DemoScene::OnEnter()
     obstacles_.clear();
     particles_.Clear();
 
-    // --- Tuning knobs ---
-    const int cell = 320;        // spacing between obstacle "cells" (bigger = less dense)
-    const int margin = 120;      // keep obstacles away from world edges
-    const int maxPerRow = (worldW_ - 2 * margin) / cell;
-    const int maxPerCol = (worldH_ - 2 * margin) / cell;
+    // Try loading a level from file first
+    LevelData loadedLevel;
+    const bool levelLoaded = LevelIO::LoadFromFile("assets/levels/test_level.txt", loadedLevel);
 
-    // Deterministic hash (no RNG) -> returns 0..(mod-1)
-    auto hash2 = [](int x, int y, int mod) -> int
-        {
-            // cheap integer hash
-            unsigned v = static_cast<unsigned>(x * 73856093u) ^ static_cast<unsigned>(y * 19349663u);
-            v ^= (v >> 13);
-            v *= 1274126177u;
-            return static_cast<int>(v % static_cast<unsigned>(mod));
-        };
-
-    // Helper to avoid spawning inside a protected "spawn area"
-    SDL_Rect spawnSafe{ 0, 0, 0, 0 };
+    if (levelLoaded)
     {
-        // keep a clear area around the initial player spawn
-        const int safeW = 500;
-        const int safeH = 350;
-        const int sx = 200;   // if your spawn is different, adjust these two lines
-        const int sy = 200;
-        spawnSafe = SDL_Rect{ sx - safeW / 2, sy - safeH / 2, safeW, safeH };
+        worldW_ = loadedLevel.worldW;
+        worldH_ = loadedLevel.worldH;
+
+        worldPos_.x = static_cast<double>(loadedLevel.playerSpawn.x);
+        worldPos_.y = static_cast<double>(loadedLevel.playerSpawn.y);
+
+        obstacles_ = loadedLevel.obstacles;
     }
-
-    auto overlaps = [](const SDL_Rect& a, const SDL_Rect& b) -> bool
-        {
-            return SDL_HasIntersection(&a, &b);
-        };
-
-    // Generating obstacles across the world
-    for (int gy = 0; gy <= maxPerCol; ++gy)
+    else
     {
-        for (int gx = 0; gx <= maxPerRow; ++gx)
+        Log::Warn("Could not load assets/levels/test_level.txt. Falling back to procedural obstacle generation.");
+        // --- Tuning knobs ---
+        const int cell = 320;        // spacing between obstacle "cells" (bigger = less dense)
+        const int margin = 120;      // keep obstacles away from world edges
+        const int maxPerRow = (worldW_ - 2 * margin) / cell;
+        const int maxPerCol = (worldH_ - 2 * margin) / cell;
+
+        // Deterministic hash (no RNG) -> returns 0..(mod-1)
+        auto hash2 = [](int x, int y, int mod) -> int
+            {
+                // cheap integer hash
+                unsigned v = static_cast<unsigned>(x * 73856093u) ^ static_cast<unsigned>(y * 19349663u);
+                v ^= (v >> 13);
+                v *= 1274126177u;
+                return static_cast<int>(v % static_cast<unsigned>(mod));
+            };
+
+        // Helper to avoid spawning inside a protected "spawn area"
+        SDL_Rect spawnSafe{ 0, 0, 0, 0 };
         {
-            // Probability gate (lower => fewer obstacles)
-            // 0..99; place only if < threshold
-            const int roll = hash2(gx, gy, 100);
-            if (roll >= 30) // ~% filled;decrease for sparser, increase for denser
-                continue;
-
-            // Base position in world
-            int baseX = margin + gx * cell;
-            int baseY = margin + gy * cell;
-
-            // Jitter within the cell 
-            int jx = hash2(gx + 11, gy + 7, 120) - 60;   // -60..+59
-            int jy = hash2(gx + 19, gy + 3, 120) - 60;
-
-            int x = baseX + jx;
-            int y = baseY + jy;
-
-            // Size variety
-            int w = 70 + hash2(gx + 3, gy + 5, 140);     // 70..209
-            int h = 40 + hash2(gx + 9, gy + 2, 110);     // 40..149
-
-            // some tall pillars
-            if (hash2(gx + 2, gy + 9, 10) == 0)
-            {
-                w = 60 + hash2(gx + 5, gy + 1, 60);      // 60..119
-                h = 220 + hash2(gx + 7, gy + 4, 180);    // 220..399
-            }
-
-            SDL_Rect r{ x, y, w, h };
-
-            // Keep inside world
-            if (r.x < margin) r.x = margin;
-            if (r.y < margin) r.y = margin;
-            if (r.x + r.w > worldW_ - margin) r.x = worldW_ - margin - r.w;
-            if (r.y + r.h > worldH_ - margin) r.y = worldH_ - margin - r.h;
-
-            // Keep spawn area clear
-            if (overlaps(r, spawnSafe))
-                continue;
-
-            // Avoiding heavy overlap with existing obstacles 
-            bool bad = false;
-            for (const auto& o : obstacles_)
-            {
-                if (SDL_HasIntersection(&r, &o))
-                {
-                    bad = true;
-                    break;
-                }
-            }
-            if (bad)
-                continue;
-
-            obstacles_.push_back(r);
-
-            collision_.SetWorldSize(worldW_, worldH_);
-            collision_.SetObstacles(obstacles_);
+            // keep a clear area around the initial player spawn
+            const int safeW = 500;
+            const int safeH = 350;
+            const int sx = 200;   // if your spawn is different, adjust these two lines
+            const int sy = 200;
+            spawnSafe = SDL_Rect{ sx - safeW / 2, sy - safeH / 2, safeW, safeH };
         }
+
+        auto overlaps = [](const SDL_Rect& a, const SDL_Rect& b) -> bool
+            {
+                return SDL_HasIntersection(&a, &b);
+            };
+
+        // Generating obstacles across the world
+        for (int gy = 0; gy <= maxPerCol; ++gy)
+        {
+            for (int gx = 0; gx <= maxPerRow; ++gx)
+            {
+                // Probability gate (lower => fewer obstacles)
+                // 0..99; place only if < threshold
+                const int roll = hash2(gx, gy, 100);
+                if (roll >= 30) // ~% filled;decrease for sparser, increase for denser
+                    continue;
+
+                // Base position in world
+                int baseX = margin + gx * cell;
+                int baseY = margin + gy * cell;
+
+                // Jitter within the cell 
+                int jx = hash2(gx + 11, gy + 7, 120) - 60;   // -60..+59
+                int jy = hash2(gx + 19, gy + 3, 120) - 60;
+
+                int x = baseX + jx;
+                int y = baseY + jy;
+
+                // Size variety
+                int w = 70 + hash2(gx + 3, gy + 5, 140);     // 70..209
+                int h = 40 + hash2(gx + 9, gy + 2, 110);     // 40..149
+
+                // some tall pillars
+                if (hash2(gx + 2, gy + 9, 10) == 0)
+                {
+                    w = 60 + hash2(gx + 5, gy + 1, 60);      // 60..119
+                    h = 220 + hash2(gx + 7, gy + 4, 180);    // 220..399
+                }
+
+                SDL_Rect r{ x, y, w, h };
+
+                // Keep inside world
+                if (r.x < margin) r.x = margin;
+                if (r.y < margin) r.y = margin;
+                if (r.x + r.w > worldW_ - margin) r.x = worldW_ - margin - r.w;
+                if (r.y + r.h > worldH_ - margin) r.y = worldH_ - margin - r.h;
+
+                // Keep spawn area clear
+                if (overlaps(r, spawnSafe))
+                    continue;
+
+                // Avoiding heavy overlap with existing obstacles 
+                bool bad = false;
+                for (const auto& o : obstacles_)
+                {
+                    if (SDL_HasIntersection(&r, &o))
+                    {
+                        bad = true;
+                        break;
+                    }
+                }
+                if (bad)
+                    continue;
+
+                obstacles_.push_back(r);
+            }
+        }
+        
     }
 
+    collision_.SetWorldSize(worldW_, worldH_);
+    collision_.SetObstacles(obstacles_);
 }
 
 void DemoScene::OnExit()
