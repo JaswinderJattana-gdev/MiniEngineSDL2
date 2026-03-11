@@ -67,6 +67,9 @@ bool Engine::Init()
 
     ctx_.renderer = &renderer_;
 
+    assets_.Init(renderer_.Raw());
+    ctx_.assets = &assets_;
+
     // Set logical size if enabled (now ctx_.logicalW/H are valid)
     if (ctx_.engineCfg.useLogicalSize)
         renderer_.SetLogicalSize(ctx_.logicalW, ctx_.logicalH);
@@ -211,11 +214,18 @@ void Engine::Run()
 
 void Engine::Shutdown()
 {
+    assets_.Shutdown();
+    ctx_.assets = nullptr;
+
+    renderer_.Shutdown();
+    ctx_.renderer = nullptr;
+
     if (window_)
     {
         SDL_DestroyWindow(window_);
         window_ = nullptr;
     }
-    renderer_.Shutdown();
+    ctx_.window = nullptr;
+
     SDL_Quit();
 }

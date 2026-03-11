@@ -8,6 +8,7 @@
 #include "InputMap.h"
 #include <memory>
 #include "Config.h"
+#include "AssetManager.h"
 
 class Engine
 {
@@ -32,6 +33,7 @@ private:
     bool running_ = false;
     Input input_;
     Renderer renderer_;
+	AssetManager assets_;
     EngineConfig engineCfg_{};
     SceneManager scenes_;
     EngineContext ctx_{};

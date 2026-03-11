@@ -7,6 +7,8 @@ class InputMap;
 
 class Renderer;
 
+class AssetManager;
+
 struct EngineContext
 {
     // Updated by the engine on resize
@@ -24,4 +26,6 @@ struct EngineContext
     Renderer* renderer = nullptr;
 
     SDL_Window* window = nullptr;
+
+	AssetManager* assets = nullptr;
 };
