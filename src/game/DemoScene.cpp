@@ -370,7 +370,7 @@ void DemoScene::OnEnter()
 
         if (ctx_.assets)
         {
-            ctx_.assets->LoadTextureBMP("player_sheet", "assets/player_sheet.bmp");
+            ctx_.assets->LoadTextureBMP("player_sheet", "assets/player_sheet.bmp", 255, 255, 255);
 
             SDL_Texture* tex = ctx_.assets->GetTexture("player_sheet");
 
