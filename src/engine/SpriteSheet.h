@@ -10,7 +10,9 @@ public:
         int frameW, int frameH,
         int columns, int rows);
 
-    SDL_Texture* Texture() const { return tex_.Get(); }
+    void SetTexture(SDL_Texture* tex, int frameW, int frameH, int columns, int rows);
+
+    SDL_Texture* Texture() const;
 
     int FrameW() const { return frameW_; }
     int FrameH() const { return frameH_; }
@@ -21,6 +23,9 @@ public:
 
 private:
     Texture2D tex_;
+    SDL_Texture* externalTex_ = nullptr;
+    bool usingExternalTexture_ = false;
+
     int frameW_ = 0;
     int frameH_ = 0;
     int columns_ = 0;

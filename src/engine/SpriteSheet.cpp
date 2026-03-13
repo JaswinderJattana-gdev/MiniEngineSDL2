@@ -11,6 +11,9 @@ bool SpriteSheet::LoadFromBMP(SDL_Renderer* r, const std::string& path,
     columns_ = columns;
     rows_ = rows;
 
+    usingExternalTexture_ = false;
+    externalTex_ = nullptr;
+
     // Treat pure white as transparent (BMP color key)
     if (!tex_.LoadFromBMP(r, path, true, 255, 255, 255))
         return false;
@@ -25,6 +28,25 @@ bool SpriteSheet::LoadFromBMP(SDL_Renderer* r, const std::string& path,
     }
 
     return true;
+}
+
+void SpriteSheet::SetTexture(SDL_Texture* tex, int frameW, int frameH, int columns, int rows)
+{
+    externalTex_ = tex;
+    usingExternalTexture_ = (tex != nullptr);
+
+    frameW_ = frameW;
+    frameH_ = frameH;
+    columns_ = columns;
+    rows_ = rows;
+}
+
+SDL_Texture* SpriteSheet::Texture() const
+{
+    if (usingExternalTexture_)
+        return externalTex_;
+
+    return tex_.Get();
 }
 
 SDL_Rect SpriteSheet::FrameRect(int col, int row) const

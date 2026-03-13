@@ -13,6 +13,8 @@
 #include "../engine/WorldRender2D.h"
 #include "../engine/LevelData.h"
 #include "../engine/LevelIO.h"
+#include "../engine/AssetManager.h"
+#include "../engine/SpriteSheet.h"
 
 #include <algorithm>
 #include <memory>
@@ -364,8 +366,25 @@ void DemoScene::OnEnter()
         const int cols = 8; // frames per direction
         const int rows = 8; // directions
 
-        sheetLoaded_ = sheet_.LoadFromBMP(ctx_.renderer->Raw(), "assets/player_sheet.bmp",
-            frameW, frameH, cols, rows);
+        sheetLoaded_ = false;
+
+        if (ctx_.assets)
+        {
+            ctx_.assets->LoadTextureBMP("player_sheet", "assets/player_sheet.bmp");
+
+            SDL_Texture* tex = ctx_.assets->GetTexture("player_sheet");
+
+            if (tex)
+            {
+                sheet_.SetTexture(tex, frameW, frameH, cols, rows);
+                sheetLoaded_ = true;
+            }
+        }
+
+        if (!sheetLoaded_)
+        {
+            Log::Warn("Could not load assets/player_sheet.bmp. Falling back to rectangle.");
+        }
 
         if (!sheetLoaded_)
             Log::Warn("Could not load assets/player_sheet.bmp. Falling back to rectangle.");
