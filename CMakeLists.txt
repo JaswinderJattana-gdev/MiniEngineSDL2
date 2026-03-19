@@ -41,6 +41,8 @@ add_executable(MiniEngineSDL2
     src/engine/LevelIO.cpp
     src/engine/AssetManager.h
     src/engine/AssetManager.cpp
+    src/engine/BulletSystem2D.cpp
+    SRC/engine/BulletSystem2D.h
 
     src/engine/math/Vec2.h
 
@@ -51,7 +53,7 @@ add_executable(MiniEngineSDL2
     src/game/PauseScene.cpp
     src/game/PauseScene.h
 
- "src/engine/EngineContext.h" "src/engine/Actions.h" "src/engine/InputMap.h" "src/engine/InputMap.cpp" "src/game/PauseScene.h" "src/game/PauseScene.cpp" "src/engine/math/Vec2.h" "src/engine/Texture2D.h" "src/engine/Texture2D.cpp" "src/engine/SpriteSheet.h" "src/engine/SpriteSheet.cpp" "src/engine/Animator.h" "src/engine/CollisionWorld2D.h" "src/engine/CollisionWorld2D.cpp" "src/engine/LevelData.h" "src/engine/LevelIO.h" "src/engine/LevelIO.cpp" "src/engine/AssetManager.h" "src/engine/AssetManager.cpp")
+ "src/engine/EngineContext.h" "src/engine/Actions.h" "src/engine/InputMap.h" "src/engine/InputMap.cpp" "src/game/PauseScene.h" "src/game/PauseScene.cpp" "src/engine/math/Vec2.h" "src/engine/Texture2D.h" "src/engine/Texture2D.cpp" "src/engine/SpriteSheet.h" "src/engine/SpriteSheet.cpp" "src/engine/Animator.h" "src/engine/CollisionWorld2D.h" "src/engine/CollisionWorld2D.cpp" "src/engine/LevelData.h" "src/engine/LevelIO.h" "src/engine/LevelIO.cpp" "src/engine/AssetManager.h" "src/engine/AssetManager.cpp" "src/engine/BulletSystem2D.cpp")
 
 target_include_directories(MiniEngineSDL2 PRIVATE
     src
