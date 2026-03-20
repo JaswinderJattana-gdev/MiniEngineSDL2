@@ -112,7 +112,10 @@ void DemoScene::Update(double dtSeconds, const Input& input, const EngineContext
     const bool moving = (dir.x != 0.0 || dir.y != 0.0);
     const int dirIndex = pickDirRow(dir.x, dir.y);
     if (dirIndex != -1)
+    {
         dirRow_ = DIR_TO_ROW[dirIndex];
+        facingDir_ = dir;
+    }
 
     if (moving)
     {
@@ -176,6 +179,24 @@ void DemoScene::Update(double dtSeconds, const Input& input, const EngineContext
         shakeTimeLeft_ = 0.10;
     }
 
+    // Fire input
+    const bool firePressed = (ctx.input && ctx.input->Pressed(input, Action::Fire));
+
+    if (firePressed)
+    {
+        Vec2 fireDir = facingDir_;
+        if (fireDir.x == 0.0 && fireDir.y == 0.0)
+            fireDir = Vec2{ 0.0, 1.0 };
+
+        // spawn from player center
+        Vec2 spawnPos{
+            worldPos_.x + w_ * 0.5 - 4.0,
+            worldPos_.y + h_ * 0.5 - 4.0
+        };
+
+        bullets_.Spawn(spawnPos, fireDir.Normalized(), 900.0, 1.2, 8, 8);
+    }
+
     // Dust spawn (only when actually moving)
     if (moving_)
     {
@@ -189,6 +210,9 @@ void DemoScene::Update(double dtSeconds, const Input& input, const EngineContext
 
     // Update particles
     particles_.Update(dtSeconds);
+
+    // Update bullets
+    bullets_.Update(dtSeconds);
    
     // Camera follow (center player)
     camera_.SetViewSize(ctx.logicalW, ctx.logicalH);
@@ -246,6 +270,9 @@ void DemoScene::Render(Renderer& renderer, const EngineContext& ctx)
 
     // Draw dust particles (world -> screen)
     particles_.RenderSquares(renderer, camForRender);
+
+	// Draw bullets (world -> screen)
+    bullets_.Render(renderer, camForRender);
 
 	// Debug draw
     if (debugDraw_)
@@ -515,6 +542,10 @@ void DemoScene::OnEnter()
 
     collision_.SetWorldSize(worldW_, worldH_);
     collision_.SetObstacles(obstacles_);
+
+    bullets_.Clear();
+    bullets_.SetWorldSize(worldW_, worldH_);
+    bullets_.SetObstacles(&obstacles_);
 }
 
 void DemoScene::OnExit()

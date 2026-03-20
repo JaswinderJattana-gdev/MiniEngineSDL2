@@ -8,6 +8,7 @@
 #include "../engine/Camera2D.h"
 #include "../engine/ParticleSystem2D.h"
 #include "../engine/CollisionWorld2D.h"
+#include "../engine/BulletSystem2D.h"
 #include <vector>
 #include <SDL.h>
 
@@ -66,6 +67,9 @@ private:
     double dashDuration_ = 0.30;
     double dashCooldown_ = 0.35;
     double dashSpeedMult_ = 3;
+
+    BulletSystem2D bullets_;
+    Vec2 facingDir_{ 0.0, 1.0 }; // default facing down
 
     Camera2D camera_;
 

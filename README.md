@@ -140,6 +140,7 @@ MiniEngineSDL2
 W / A / S / D | Move |
 Arrow Keys | Move |
 Shift | Dash |
+Space | Fire |
 P | Pause |
 ESC | Return to Menu |
 F1 | Toggle Debug Overlay |

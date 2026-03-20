@@ -94,6 +94,7 @@ bool Engine::Init()
 
     inputMap_.Bind(Action::Dash, SDL_SCANCODE_LSHIFT);
     inputMap_.Bind(Action::Dash, SDL_SCANCODE_RSHIFT);
+    inputMap_.Bind(Action::Fire, SDL_SCANCODE_SPACE);
 
     running_ = true;
 
