@@ -96,6 +96,9 @@ void DemoScene::Update(double dtSeconds, const Input& input, const EngineContext
             return s;
         };
 
+	// fire cooldown
+    fireCooldown_ = std::max(0.0, fireCooldown_ - dtSeconds);
+
 	// Dash
     dashCooldownLeft_ = std::max(0.0, dashCooldownLeft_ - dtSeconds);
     if (dashing_)
@@ -180,15 +183,16 @@ void DemoScene::Update(double dtSeconds, const Input& input, const EngineContext
     }
 
     // Fire input
-    const bool firePressed = (ctx.input && ctx.input->Pressed(input, Action::Fire));
+    const bool fireHeld = (ctx.input && ctx.input->Down(input, Action::Fire));
 
-    if (firePressed)
+    if (fireHeld && fireCooldown_ <= 0.0)
     {
+        fireCooldown_ = fireInterval_;
+
         Vec2 fireDir = facingDir_;
         if (fireDir.x == 0.0 && fireDir.y == 0.0)
             fireDir = Vec2{ 0.0, 1.0 };
 
-        // spawn from player center
         Vec2 spawnPos{
             worldPos_.x + w_ * 0.5 - 4.0,
             worldPos_.y + h_ * 0.5 - 4.0

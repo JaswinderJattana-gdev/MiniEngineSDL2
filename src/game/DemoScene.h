@@ -71,6 +71,9 @@ private:
     BulletSystem2D bullets_;
     Vec2 facingDir_{ 0.0, 1.0 }; // default facing down
 
+    double fireCooldown_ = 0.0;
+    double fireInterval_ = 0.12; // to control shots/sec 
+
     Camera2D camera_;
 
     ParticleSystem2D particles_;
