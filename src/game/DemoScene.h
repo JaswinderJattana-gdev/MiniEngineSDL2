@@ -9,6 +9,7 @@
 #include "../engine/ParticleSystem2D.h"
 #include "../engine/CollisionWorld2D.h"
 #include "../engine/BulletSystem2D.h"
+#include "../engine/TargetSystem2D.h"
 #include <vector>
 #include <SDL.h>
 
@@ -70,6 +71,8 @@ private:
 
     BulletSystem2D bullets_;
     Vec2 facingDir_{ 0.0, 1.0 }; // default facing down
+
+    TargetSystem2D targets_;
 
     double fireCooldown_ = 0.0;
     double fireInterval_ = 0.12; // to control shots/sec 

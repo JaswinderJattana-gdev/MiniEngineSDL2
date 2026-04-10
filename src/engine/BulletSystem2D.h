@@ -49,11 +49,13 @@ public:
     void Render(Renderer& renderer, const Camera2D& cam) const;
 
     const std::vector<Bullet>& Bullets() const { return bullets_; }
+    std::vector<Bullet>& Bullets() { return bullets_; }
+
+    SDL_Rect BulletRect(const Bullet& b) const;
 
 private:
     bool IsOutOfWorld(const Bullet& b) const;
     bool HitsObstacle(const Bullet& b) const;
-    SDL_Rect BulletRect(const Bullet& b) const;
 
 private:
     std::vector<Bullet> bullets_;

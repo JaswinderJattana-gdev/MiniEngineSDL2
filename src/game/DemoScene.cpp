@@ -217,6 +217,21 @@ void DemoScene::Update(double dtSeconds, const Input& input, const EngineContext
 
     // Update bullets
     bullets_.Update(dtSeconds);
+
+    // Bullet vs target hit detection
+    auto& activeBullets = bullets_.Bullets();
+
+    activeBullets.erase(
+        std::remove_if(activeBullets.begin(), activeBullets.end(),
+            [this](const BulletSystem2D::Bullet& b)
+            {
+                SDL_Rect br = bullets_.BulletRect(b);
+                return targets_.HitAndRemoveFirst(br);
+            }),
+        activeBullets.end()
+    );
+
+    targets_.RemoveDead();
    
     // Camera follow (center player)
     camera_.SetViewSize(ctx.logicalW, ctx.logicalH);
@@ -274,6 +289,9 @@ void DemoScene::Render(Renderer& renderer, const EngineContext& ctx)
 
     // Draw dust particles (world -> screen)
     particles_.RenderSquares(renderer, camForRender);
+
+    // Draw targets (world -> screen)
+    targets_.Render(renderer, camForRender);
 
 	// Draw bullets (world -> screen)
     bullets_.Render(renderer, camForRender);
@@ -550,6 +568,14 @@ void DemoScene::OnEnter()
     bullets_.Clear();
     bullets_.SetWorldSize(worldW_, worldH_);
     bullets_.SetObstacles(&obstacles_);
+
+    targets_.Clear();
+
+    // Temporary demo targets (engine system test)
+    targets_.AddTarget(SDL_Rect{ 900, 500, 48, 48 });
+    targets_.AddTarget(SDL_Rect{ 1100, 700, 48, 48 });
+    targets_.AddTarget(SDL_Rect{ 1400, 900, 48, 48 });
+    targets_.AddTarget(SDL_Rect{ 1700, 650, 48, 48 });
 }
 
 void DemoScene::OnExit()
