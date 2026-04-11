@@ -189,16 +189,35 @@ void DemoScene::Update(double dtSeconds, const Input& input, const EngineContext
     {
         fireCooldown_ = fireInterval_;
 
-        Vec2 fireDir = facingDir_;
-        if (fireDir.x == 0.0 && fireDir.y == 0.0)
-            fireDir = Vec2{ 0.0, 1.0 };
+        // Mouse position comes in window coordinates.
+        SDL_Point mouseWindow = input.MousePosition();
+
+        int mouseLogicalX = mouseWindow.x;
+        int mouseLogicalY = mouseWindow.y;
+
+        if (ctx.windowW > 0 && ctx.windowH > 0)
+        {
+            mouseLogicalX = static_cast<int>((static_cast<double>(mouseWindow.x) / static_cast<double>(ctx.windowW)) * ctx.logicalW);
+            mouseLogicalY = static_cast<int>((static_cast<double>(mouseWindow.y) / static_cast<double>(ctx.windowH)) * ctx.logicalH);
+        }
+
+        SDL_Point mouseLogical{ mouseLogicalX, mouseLogicalY };
+        SDL_Point mouseWorld = camera_.ScreenToWorldPoint(mouseLogical);
 
         Vec2 spawnPos{
             worldPos_.x + w_ * 0.5 - 4.0,
             worldPos_.y + h_ * 0.5 - 4.0
         };
 
-        bullets_.Spawn(spawnPos, fireDir.Normalized(), 900.0, 1.2, 8, 8);
+        Vec2 aimDir{
+            static_cast<double>(mouseWorld.x) - (worldPos_.x + w_ * 0.5),
+            static_cast<double>(mouseWorld.y) - (worldPos_.y + h_ * 0.5)
+        };
+
+        if (aimDir.Length() <= 0.0001)
+            aimDir = Vec2{ 0.0, 1.0 };
+
+        bullets_.Spawn(spawnPos, aimDir.Normalized(), 900.0, 1.2, 8, 8);
     }
 
     // Dust spawn (only when actually moving)

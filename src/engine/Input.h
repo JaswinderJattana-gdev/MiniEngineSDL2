@@ -17,6 +17,8 @@ public:
     bool KeyPressed(SDL_Scancode sc) const;   // went down this frame
     bool KeyReleased(SDL_Scancode sc) const;  // went up this frame
 
+    SDL_Point MousePosition() const;
+
 private:
     void RefreshKeyboardState();
 
