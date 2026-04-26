@@ -20,6 +20,84 @@
 #include <memory>
 #include <cmath>
 
+namespace
+{
+    constexpr double PI = 3.14159265358979323846;
+
+    double AngleDegreesFromDir(const Vec2& dir)
+    {
+        // 0 degrees = East/right
+        // positive angle goes counter-clockwise in math space
+        double deg = std::atan2(-dir.y, dir.x) * 180.0 / PI;
+        if (deg < 0.0)
+            deg += 360.0;
+        return deg;
+    }
+
+    int DirectionIndex16FromDir(const Vec2& dir, int offset, bool clockwise)
+    {
+        if (dir.x == 0.0 && dir.y == 0.0)
+            return 0;
+
+        double deg = AngleDegreesFromDir(dir);
+
+        // 16 directions = 22.5 degrees each
+        int idx = static_cast<int>(std::floor((deg + 11.25) / 22.5)) % 16;
+
+        if (clockwise)
+            idx = (16 - idx) % 16;
+
+        idx = (idx + offset) % 16;
+        if (idx < 0)
+            idx += 16;
+
+        return idx;
+    }
+
+    int TurretFrame90FromDir(const Vec2& dir, int offset, bool clockwise)
+    {
+        if (dir.x == 0.0 && dir.y == 0.0)
+            return 0;
+
+        double deg = AngleDegreesFromDir(dir);
+
+        // 90 frames = 4 degrees each
+        int frame = static_cast<int>(std::round(deg / 4.0)) % 90;
+
+        if (clockwise)
+            frame = (90 - frame) % 90;
+
+        frame = (frame + offset) % 90;
+        if (frame < 0)
+            frame += 90;
+
+        return frame;
+    }
+
+    SDL_Point PointOnCircle(double degrees, double radius, double sideOffset)
+    {
+        constexpr double PI = 3.14159265358979323846;
+
+        const double rad = degrees * PI / 180.0;
+
+        // Direction: 0 degrees = right/east
+        const double dx = std::cos(rad);
+        const double dy = -std::sin(rad);
+
+        // Perpendicular vector
+        const double px = -dy;
+        const double py = dx;
+
+        const double cx = 256.0;
+        const double cy = 256.0;
+
+        return SDL_Point{
+            static_cast<int>(std::round(cx + dx * radius + px * sideOffset)),
+            static_cast<int>(std::round(cy + dy * radius + py * sideOffset))
+        };
+    }
+}
+
 DemoScene::DemoScene(SceneManager& scenes, const EngineContext& ctx)
     : scenes_(scenes), ctx_(ctx)
 {}
@@ -169,6 +247,26 @@ void DemoScene::Update(double dtSeconds, const Input& input, const EngineContext
     else
         anim_.Update(dtSeconds, false);
 
+    // Mech lower-body direction and walk animation
+    if (moving_)
+    {
+        mechLowerDir_ = DirectionIndex16FromDir(dir, mechLowerDirOffset_, mechLowerClockwise_);
+
+        mechLowerAnimTimer_ += dtSeconds;
+        const double frameTime = 1.0 / mechLowerFps_;
+
+        while (mechLowerAnimTimer_ >= frameTime)
+        {
+            mechLowerAnimTimer_ -= frameTime;
+            mechLowerFrame_ = (mechLowerFrame_ + 1) % MECH_LOWER_FRAMES;
+        }
+    }
+    else
+    {
+        mechLowerAnimTimer_ = 0.0;
+        mechLowerFrame_ = 0;
+    }
+
 	// Dash input
     const bool dashPressed = (ctx.input && ctx.input->Pressed(input, Action::Dash));
 
@@ -204,20 +302,32 @@ void DemoScene::Update(double dtSeconds, const Input& input, const EngineContext
         SDL_Point mouseLogical{ mouseLogicalX, mouseLogicalY };
         SDL_Point mouseWorld = camera_.ScreenToWorldPoint(mouseLogical);
 
-        Vec2 spawnPos{
-            worldPos_.x + w_ * 0.5 - 4.0,
-            worldPos_.y + h_ * 0.5 - 4.0
-        };
-
         Vec2 aimDir{
             static_cast<double>(mouseWorld.x) - (worldPos_.x + w_ * 0.5),
             static_cast<double>(mouseWorld.y) - (worldPos_.y + h_ * 0.5)
         };
 
+        Vec2 fireDir = aimDir.Normalized();
+
+        const double mechWorldX = worldPos_.x + w_ * 0.5 - mechRenderSize_ * 0.5;
+        const double mechWorldY = worldPos_.y + h_ * 0.5 - mechRenderSize_ * 0.5;
+        const double mechScale = static_cast<double>(mechRenderSize_) / static_cast<double>(MECH_FRAME_SIZE);
+
+        for (int gun = 0; gun < MECH_GUN_COUNT; ++gun)
+        {
+            const SDL_Point muzzleLocal = mechMuzzleMap_[mechUpperFrame_][gun];
+
+            Vec2 muzzleWorld{
+                mechWorldX + muzzleLocal.x * mechScale - 4.0,
+                mechWorldY + muzzleLocal.y * mechScale - 4.0
+            };
+
+            bullets_.Spawn(muzzleWorld, fireDir, 900.0, 1.2, 8, 8);
+        }
+
+  
         if (aimDir.Length() <= 0.0001)
             aimDir = Vec2{ 0.0, 1.0 };
-
-        bullets_.Spawn(spawnPos, aimDir.Normalized(), 900.0, 1.2, 8, 8);
     }
 
     // Dust spawn (only when actually moving)
@@ -260,6 +370,35 @@ void DemoScene::Update(double dtSeconds, const Input& input, const EngineContext
 
     // (temporary mirror for compatibility this step)
     camPos_ = camera_.Position();
+
+    // Update turret aim frame from mouse position
+    SDL_Point mouseWindow = input.MousePosition();
+
+    int mouseLogicalX = mouseWindow.x;
+    int mouseLogicalY = mouseWindow.y;
+
+    if (ctx.windowW > 0 && ctx.windowH > 0)
+    {
+        mouseLogicalX = static_cast<int>((static_cast<double>(mouseWindow.x) / static_cast<double>(ctx.windowW)) * ctx.logicalW);
+        mouseLogicalY = static_cast<int>((static_cast<double>(mouseWindow.y) / static_cast<double>(ctx.windowH)) * ctx.logicalH);
+    }
+
+    SDL_Point mouseWorld = camera_.ScreenToWorldPoint(SDL_Point{ mouseLogicalX, mouseLogicalY });
+
+    Vec2 playerCenter{
+        worldPos_.x + w_ * 0.5,
+        worldPos_.y + h_ * 0.5
+    };
+
+    Vec2 aimDir{
+        static_cast<double>(mouseWorld.x) - playerCenter.x,
+        static_cast<double>(mouseWorld.y) - playerCenter.y
+    };
+
+    if (aimDir.Length() > 0.0001)
+    {
+        mechUpperFrame_ = TurretFrame90FromDir(aimDir.Normalized(), mechUpperFrameOffset_, mechUpperClockwise_);
+    }
 }
 
 void DemoScene::Render(Renderer& renderer, const EngineContext& ctx)
@@ -342,11 +481,43 @@ void DemoScene::Render(Renderer& renderer, const EngineContext& ctx)
     const int screenX = static_cast<int>(std::round(worldPos_.x - cam.x));
     const int screenY = static_cast<int>(std::round(worldPos_.y - cam.y));
 
-	// Draw player
-    if (sheetLoaded_ && sheet_.Texture())
+    // Draw player / mech
+    const int mechX = static_cast<int>(std::round(worldPos_.x + w_ * 0.5 - mechRenderSize_ * 0.5 - cam.x));
+    const int mechY = static_cast<int>(std::round(worldPos_.y + h_ * 0.5 - mechRenderSize_ * 0.5 - cam.y));
+
+    if (mechLowerLoaded_ && mechLowerSheet_.Texture())
     {
-        // Animator resets to frame 0 when idle (playing=false in Update).
-        // idle pose set to column 3.
+        SDL_Rect lowerSrc = mechLowerFrameMap_[mechLowerDir_][mechLowerFrame_];
+
+        renderer.DrawTextureRegion(
+            mechLowerSheet_.Texture(),
+            lowerSrc,
+            mechX,
+            mechY,
+            mechRenderSize_,
+            mechRenderSize_
+        );
+    }
+
+    if (mechUpperLoaded_ && mechUpperSheet_.Texture())
+    {
+        const int upperCol = mechUpperFrame_ % 10;
+        const int upperRow = mechUpperFrame_ / 10;
+        SDL_Rect upperSrc = mechUpperSheet_.FrameRect(upperCol, upperRow);
+
+        renderer.DrawTextureRegion(
+            mechUpperSheet_.Texture(),
+            upperSrc,
+            mechX,
+            mechY,
+            mechRenderSize_,
+            mechRenderSize_
+        );
+    }
+
+    // Fallback to old player sprite if mech failed to load
+    if (!mechLowerLoaded_ && !mechUpperLoaded_ && sheetLoaded_ && sheet_.Texture())
+    {
         const int col = moving_ ? anim_.CurrentCol() : idleCol_;
         const SDL_Rect src = sheet_.FrameRect(col, dirRow_);
 
@@ -355,16 +526,38 @@ void DemoScene::Render(Renderer& renderer, const EngineContext& ctx)
             src,
             screenX,
             screenY,
-            w_, h_
+            w_,
+            h_
         );
     }
-    else
+    else if (!mechLowerLoaded_ && !mechUpperLoaded_)
     {
         renderer.DrawRect(
             screenX,
             screenY,
-            w_, h_
+            w_,
+            h_
         );
+    }
+
+    // Debug muzzle points
+    if (drawMuzzleDebug_ && mechUpperLoaded_)
+    {
+        const int mechX = static_cast<int>(std::round(worldPos_.x + w_ * 0.5 - mechRenderSize_ * 0.5 - cam.x));
+        const int mechY = static_cast<int>(std::round(worldPos_.y + h_ * 0.5 - mechRenderSize_ * 0.5 - cam.y));
+        const double mechScale = static_cast<double>(mechRenderSize_) / static_cast<double>(MECH_FRAME_SIZE);
+
+        renderer.SetDrawColor(0, 255, 0, 255);
+
+        for (int gun = 0; gun < MECH_GUN_COUNT; ++gun)
+        {
+            const SDL_Point muzzleLocal = mechMuzzleMap_[mechUpperFrame_][gun];
+
+            const int mx = mechX + static_cast<int>(std::round(muzzleLocal.x * mechScale));
+            const int my = mechY + static_cast<int>(std::round(muzzleLocal.y * mechScale));
+
+            renderer.FillRect(mx - 2, my - 2, 5, 5);
+        }
     }
 
     // HUD panel (screen space)
@@ -463,6 +656,90 @@ void DemoScene::OnEnter()
     else
     {
         Log::Warn("Renderer not available in context. Falling back to rectangle.");
+    }
+
+    // Load mech sheets
+    mechLowerLoaded_ = false;
+    mechUpperLoaded_ = false;
+
+    if (ctx_.assets)
+    {
+        // White color key because the sheets came from transparent PNGs exported to BMP
+        ctx_.assets->LoadTextureBMP("mech_lower", "assets/mechlowersheet.bmp", 255, 255, 255);
+        ctx_.assets->LoadTextureBMP("mech_upper", "assets/mechuppersheet.bmp", 255, 255, 255);
+
+        SDL_Texture* lowerTex = ctx_.assets->GetTexture("mech_lower");
+        SDL_Texture* upperTex = ctx_.assets->GetTexture("mech_upper");
+
+        if (lowerTex)
+        {
+            mechLowerSheet_.SetTexture(
+                lowerTex,
+                MECH_FRAME_SIZE,
+                MECH_FRAME_SIZE,
+                MECH_LOWER_FRAMES,
+                MECH_LOWER_DIRS
+            );
+            mechLowerLoaded_ = true;
+        }
+        else
+        {
+            Log::Warn("Could not load assets/mechlowersheet.bmp.");
+        }
+
+        if (upperTex)
+        {
+            mechUpperSheet_.SetTexture(
+                upperTex,
+                MECH_FRAME_SIZE,
+                MECH_FRAME_SIZE,
+                10,
+                9
+            );
+            mechUpperLoaded_ = true;
+        }
+        else
+        {
+            Log::Warn("Could not load assets/mechuppersheet.bmp. If this fails, re-export as 10x9 grid instead of 1x90 vertical.");
+        }
+    }
+
+    // Build default lower-body frame map.
+    // You can manually edit any individual entry later if the sheet generator misplaced frames.
+    for (int dir = 0; dir < MECH_LOWER_DIRS; ++dir)
+    {
+        for (int frame = 0; frame < MECH_LOWER_FRAMES; ++frame)
+        {
+            mechLowerFrameMap_[dir][frame] = SDL_Rect{
+                frame * MECH_FRAME_SIZE,
+                dir * MECH_FRAME_SIZE,
+                MECH_FRAME_SIZE,
+                MECH_FRAME_SIZE
+            };
+        }
+    }
+
+    // Build default dual-muzzle map for turret.
+    // These are source-frame pixel positions inside each 512x512 turret frame.
+    // Can override any individual frame below.
+    for (int frame = 0; frame < MECH_UPPER_FRAMES; ++frame)
+    {
+        const int mappedFrame = mechUpperClockwise_
+            ? (MECH_UPPER_FRAMES - frame) % MECH_UPPER_FRAMES
+            : frame;
+
+        // +22 shifts ~90 degrees clockwise
+        const int offsetFrame = (mappedFrame - 22) % MECH_UPPER_FRAMES;
+
+        const double degrees = static_cast<double>(offsetFrame) * 4.0;
+
+        // Tune these values after visually checking the muzzle dots.
+        const double barrelLength = 110.0;
+        const double barrelSideOffset = 105.0;
+
+        // Format: mechMuzzleMap_[frame][gun] = SDL_Point{ x, y };
+        mechMuzzleMap_[frame][0] = PointOnCircle(degrees, barrelLength, -barrelSideOffset);
+        mechMuzzleMap_[frame][1] = PointOnCircle(degrees, barrelLength, barrelSideOffset);
     }
 
     obstacles_.clear();

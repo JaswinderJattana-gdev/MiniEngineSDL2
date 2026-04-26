@@ -12,6 +12,7 @@
 #include "../engine/TargetSystem2D.h"
 #include <vector>
 #include <SDL.h>
+#include <array>
 
 
 class SceneManager;
@@ -46,6 +47,41 @@ public:
 
     SDL_Rect FeetRectWorld() const;
 
+    // Mech visual sheets
+    SpriteSheet mechLowerSheet_;
+    SpriteSheet mechUpperSheet_;
+
+    bool mechLowerLoaded_ = false;
+    bool mechUpperLoaded_ = false;
+
+    // Mech sheet constants
+    static constexpr int MECH_FRAME_SIZE = 512;
+    static constexpr int MECH_LOWER_DIRS = 16;
+    static constexpr int MECH_LOWER_FRAMES = 5;
+    static constexpr int MECH_UPPER_FRAMES = 90;
+
+    // Manual lower-body frame map:
+    // [direction][animationFrame] -> source rect
+    std::array<std::array<SDL_Rect, MECH_LOWER_FRAMES>, MECH_LOWER_DIRS> mechLowerFrameMap_{};
+
+    // Lower body animation
+    int mechLowerDir_ = 0;
+    int mechLowerFrame_ = 0;
+    double mechLowerAnimTimer_ = 0.0;
+    double mechLowerFps_ = 10.0;
+
+    // Upper turret
+    int mechUpperFrame_ = 0;
+
+    // Render tuning
+    int mechRenderSize_ = 128;
+
+    // Frame-map / angle tuning controls
+    int mechUpperFrameOffset_ = 67;      // change this if turret frame 0 does not face right/east
+    int mechLowerDirOffset_ = 4;        // starting guess: row 0 faces south
+    bool mechUpperClockwise_ = true;   // flip if turret rotates opposite direction
+    bool mechLowerClockwise_ = true;   // flip if lower rows rotate opposite direction
+
 private:
     SceneManager& scenes_;
     const EngineContext& ctx_;
@@ -71,6 +107,13 @@ private:
 
     BulletSystem2D bullets_;
     Vec2 facingDir_{ 0.0, 1.0 }; // default facing down
+
+    static constexpr int MECH_GUN_COUNT = 2;
+
+    // [turretFrame][gunIndex] -> muzzle position inside 512x512 source frame
+    std::array<std::array<SDL_Point, MECH_GUN_COUNT>, MECH_UPPER_FRAMES> mechMuzzleMap_{};
+
+    bool drawMuzzleDebug_ = true;
 
     TargetSystem2D targets_;
 

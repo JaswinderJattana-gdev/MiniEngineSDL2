@@ -63,3 +63,11 @@ bool Input::KeyReleased(SDL_Scancode sc) const
     if (!keys_ || sc >= keyCount_) return false;
     return (keys_[sc] == 0) && (prevKeys_[sc] != 0);
 }
+
+SDL_Point Input::MousePosition() const
+{
+    int x = 0;
+    int y = 0;
+    SDL_GetMouseState(&x, &y);
+    return SDL_Point{ x, y };
+}

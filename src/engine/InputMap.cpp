@@ -36,10 +36,10 @@ bool InputMap::Released(const Input& input, Action action) const
     return false;
 }
 
-SDL_Point Input::MousePosition() const
-{
-    int x = 0;
-    int y = 0;
-    SDL_GetMouseState(&x, &y);
-    return SDL_Point{ x, y };
-}
+//SDL_Point Input::MousePosition() const
+//{
+//    int x = 0;
+//    int y = 0;
+//    SDL_GetMouseState(&x, &y);
+//    return SDL_Point{ x, y };
+//}
