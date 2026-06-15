@@ -10,19 +10,27 @@ add_executable(MiniEngineSDL2
 
     src/engine/Engine.cpp
     src/engine/Engine.h
+
     src/engine/Input.cpp
     src/engine/Input.h
+
     src/engine/Renderer.cpp
     src/engine/Renderer.h
+
     src/engine/Log.cpp
     src/engine/Log.h
+
     src/engine/Assert.h
     src/engine/IScene.h
+
     src/engine/SceneManager.cpp
     src/engine/SceneManager.h
+
     src/engine/Actions.h
+
     src/engine/InputMap.cpp
     src/engine/InputMap.h
+
     src/engine/Texture2D.cpp
     src/engine/Texture2D.h
     src/engine/SpriteSheet.cpp
@@ -32,19 +40,26 @@ add_executable(MiniEngineSDL2
     src/engine/Camera2D.cpp
     src/engine/WorldRender2D.h 
     src/engine/WorldRender2D.cpp
+
     src/engine/ParticleSystem2D.h 
     src/engine/ParticleSystem2D.cpp
+
     src/engine/CollisionWorld2D.h
     src/engine/CollisionWorld2D.cpp
+
     src/engine/LevelData.h
     src/engine/LevelIO.h
     src/engine/LevelIO.cpp
+
     src/engine/AssetManager.h
     src/engine/AssetManager.cpp
+
     src/engine/BulletSystem2D.cpp
-    SRC/engine/BulletSystem2D.h
+    src/engine/BulletSystem2D.h
     src/engine/TargetSystem2D.h
     src/engine/TargetSystem2D.cpp
+    src/engine/WeaponSystem2D.h
+    src/engine/WeaponSystem2D.cpp
 
     src/engine/math/Vec2.h
 
@@ -55,7 +70,7 @@ add_executable(MiniEngineSDL2
     src/game/PauseScene.cpp
     src/game/PauseScene.h
 
- "src/engine/EngineContext.h" "src/engine/Actions.h" "src/engine/InputMap.h" "src/engine/InputMap.cpp" "src/game/PauseScene.h" "src/game/PauseScene.cpp" "src/engine/math/Vec2.h" "src/engine/Texture2D.h" "src/engine/Texture2D.cpp" "src/engine/SpriteSheet.h" "src/engine/SpriteSheet.cpp" "src/engine/Animator.h" "src/engine/CollisionWorld2D.h" "src/engine/CollisionWorld2D.cpp" "src/engine/LevelData.h" "src/engine/LevelIO.h" "src/engine/LevelIO.cpp" "src/engine/AssetManager.h" "src/engine/AssetManager.cpp" "src/engine/BulletSystem2D.cpp" "src/engine/TargetSystem2D.h" "src/engine/TargetSystem2D.cpp")
+)
 
 target_include_directories(MiniEngineSDL2 PRIVATE
     src

@@ -76,8 +76,6 @@ namespace
 
     SDL_Point PointOnCircle(double degrees, double radius, double sideOffset)
     {
-        constexpr double PI = 3.14159265358979323846;
-
         const double rad = degrees * PI / 180.0;
 
         // Direction: 0 degrees = right/east
@@ -174,8 +172,7 @@ void DemoScene::Update(double dtSeconds, const Input& input, const EngineContext
             return s;
         };
 
-	// fire cooldown
-    fireCooldown_ = std::max(0.0, fireCooldown_ - dtSeconds);
+    primaryWeapon_.Update(dtSeconds);
 
 	// Dash
     dashCooldownLeft_ = std::max(0.0, dashCooldownLeft_ - dtSeconds);
@@ -283,11 +280,8 @@ void DemoScene::Update(double dtSeconds, const Input& input, const EngineContext
     // Fire input
     const bool fireHeld = (ctx.input && ctx.input->Down(input, Action::Fire));
 
-    if (fireHeld && fireCooldown_ <= 0.0)
+    if (fireHeld)
     {
-        fireCooldown_ = fireInterval_;
-
-        // Mouse position comes in window coordinates.
         SDL_Point mouseWindow = input.MousePosition();
 
         int mouseLogicalX = mouseWindow.x;
@@ -299,35 +293,41 @@ void DemoScene::Update(double dtSeconds, const Input& input, const EngineContext
             mouseLogicalY = static_cast<int>((static_cast<double>(mouseWindow.y) / static_cast<double>(ctx.windowH)) * ctx.logicalH);
         }
 
-        SDL_Point mouseLogical{ mouseLogicalX, mouseLogicalY };
-        SDL_Point mouseWorld = camera_.ScreenToWorldPoint(mouseLogical);
+        SDL_Point mouseWorld = camera_.ScreenToWorldPoint(SDL_Point{ mouseLogicalX, mouseLogicalY });
 
-        Vec2 aimDir{
-            static_cast<double>(mouseWorld.x) - (worldPos_.x + w_ * 0.5),
-            static_cast<double>(mouseWorld.y) - (worldPos_.y + h_ * 0.5)
+        Vec2 playerCenter{
+            worldPos_.x + w_ * 0.5,
+            worldPos_.y + h_ * 0.5
         };
 
-        Vec2 fireDir = aimDir.Normalized();
+        Vec2 aimDir{
+            static_cast<double>(mouseWorld.x) - playerCenter.x,
+            static_cast<double>(mouseWorld.y) - playerCenter.y
+        };
 
-        const double mechWorldX = worldPos_.x + w_ * 0.5 - mechRenderSize_ * 0.5;
-        const double mechWorldY = worldPos_.y + h_ * 0.5 - mechRenderSize_ * 0.5;
-        const double mechScale = static_cast<double>(mechRenderSize_) / static_cast<double>(MECH_FRAME_SIZE);
-
-        for (int gun = 0; gun < MECH_GUN_COUNT; ++gun)
+        if (aimDir.Length() > 0.0001)
         {
-            const SDL_Point muzzleLocal = mechMuzzleMap_[mechUpperFrame_][gun];
+            Vec2 fireDir = aimDir.Normalized();
 
-            Vec2 muzzleWorld{
-                mechWorldX + muzzleLocal.x * mechScale - 4.0,
-                mechWorldY + muzzleLocal.y * mechScale - 4.0
-            };
+            const double mechWorldX = worldPos_.x + w_ * 0.5 - mechRenderSize_ * 0.5;
+            const double mechWorldY = worldPos_.y + h_ * 0.5 - mechRenderSize_ * 0.5;
+            const double mechScale = static_cast<double>(mechRenderSize_) / static_cast<double>(MECH_FRAME_SIZE);
 
-            bullets_.Spawn(muzzleWorld, fireDir, 900.0, 1.2, 8, 8);
+            std::vector<Vec2> muzzles;
+            muzzles.reserve(MECH_GUN_COUNT);
+
+            for (int gun = 0; gun < MECH_GUN_COUNT; ++gun)
+            {
+                const SDL_Point muzzleLocal = mechMuzzleMap_[mechUpperFrame_][gun];
+
+                muzzles.push_back(Vec2{
+                    mechWorldX + muzzleLocal.x * mechScale - 4.0,
+                    mechWorldY + muzzleLocal.y * mechScale - 4.0
+                    });
+            }
+
+            primaryWeapon_.TryFire(bullets_, muzzles, fireDir);
         }
-
-  
-        if (aimDir.Length() <= 0.0001)
-            aimDir = Vec2{ 0.0, 1.0 };
     }
 
     // Dust spawn (only when actually moving)
@@ -864,6 +864,17 @@ void DemoScene::OnEnter()
     bullets_.Clear();
     bullets_.SetWorldSize(worldW_, worldH_);
     bullets_.SetObstacles(&obstacles_);
+
+    WeaponDefinition2D mechGun;
+    mechGun.fireInterval = 0.08;
+    mechGun.bulletSpeed = 1000.0;
+    mechGun.bulletLife = 1.0;
+    mechGun.bulletW = 8;
+    mechGun.bulletH = 8;
+    mechGun.fireMode = WeaponFireMode::AlternatingMuzzles;
+
+    primaryWeapon_.SetDefinition(mechGun);
+    primaryWeapon_.Reset();
 
     targets_.Clear();
 

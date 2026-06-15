@@ -10,6 +10,7 @@
 #include "../engine/CollisionWorld2D.h"
 #include "../engine/BulletSystem2D.h"
 #include "../engine/TargetSystem2D.h"
+#include "../engine/WeaponSystem2D.h"
 #include <vector>
 #include <SDL.h>
 #include <array>
@@ -117,8 +118,7 @@ private:
 
     TargetSystem2D targets_;
 
-    double fireCooldown_ = 0.0;
-    double fireInterval_ = 0.12; // to control shots/sec 
+    WeaponInstance2D primaryWeapon_;
 
     Camera2D camera_;
 
