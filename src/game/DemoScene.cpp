@@ -355,7 +355,7 @@ void DemoScene::Update(double dtSeconds, const Input& input, const EngineContext
             [this](const BulletSystem2D::Bullet& b)
             {
                 SDL_Rect br = bullets_.BulletRect(b);
-                return targets_.HitAndRemoveFirst(br);
+                return targets_.HitAndDamageFirst(br, 1);
             }),
         activeBullets.end()
     );
@@ -879,10 +879,10 @@ void DemoScene::OnEnter()
     targets_.Clear();
 
     // Temporary demo targets (engine system test)
-    targets_.AddTarget(SDL_Rect{ 900, 500, 48, 48 });
-    targets_.AddTarget(SDL_Rect{ 1100, 700, 48, 48 });
-    targets_.AddTarget(SDL_Rect{ 1400, 900, 48, 48 });
-    targets_.AddTarget(SDL_Rect{ 1700, 650, 48, 48 });
+    targets_.AddTarget(SDL_Rect{ 900, 500, 48, 48 }, 3);
+    targets_.AddTarget(SDL_Rect{ 1100, 700, 48, 48 }, 3);
+    targets_.AddTarget(SDL_Rect{ 1400, 900, 48, 48 }, 3);
+    targets_.AddTarget(SDL_Rect{ 1700, 650, 48, 48 }, 3);
 }
 
 void DemoScene::OnExit()

@@ -61,6 +61,9 @@ add_executable(MiniEngineSDL2
     src/engine/WeaponSystem2D.h
     src/engine/WeaponSystem2D.cpp
 
+    src/engine/HealthSystem2D.h
+    src/engine/HealthSystem2D.cpp
+
     src/engine/math/Vec2.h
 
     src/game/MenuScene.cpp
@@ -70,7 +73,7 @@ add_executable(MiniEngineSDL2
     src/game/PauseScene.cpp
     src/game/PauseScene.h
 
-)
+ "src/engine/HealthSystem2D.h" "src/engine/HealthSystem2D.cpp")
 
 target_include_directories(MiniEngineSDL2 PRIVATE
     src

@@ -4,6 +4,7 @@
 
 #include "Renderer.h"
 #include "Camera2D.h"
+#include "HealthSystem2D.h"
 
 class TargetSystem2D
 {
@@ -11,7 +12,7 @@ public:
     struct Target
     {
         SDL_Rect rect{};
-        bool alive = true;
+        HealthComponent2D health{};
     };
 
     void Clear()
@@ -19,9 +20,12 @@ public:
         targets_.clear();
     }
 
-    void AddTarget(const SDL_Rect& rect)
+    void AddTarget(const SDL_Rect& rect, int hp = 1)
     {
-        targets_.push_back(Target{ rect, true });
+        Target t;
+        t.rect = rect;
+        t.health.SetMax(hp);
+        targets_.push_back(t);
     }
 
     void Render(Renderer& renderer, const Camera2D& cam) const
@@ -30,7 +34,7 @@ public:
 
         for (const auto& t : targets_)
         {
-            if (!t.alive)
+            if (t.health.IsDead())
                 continue;
 
             SDL_Rect r = cam.WorldToScreenRect(t.rect);
@@ -40,19 +44,20 @@ public:
 
     // Returns true if bullet rect hit any living target.
     // If so, the first hit target is marked dead.
-    bool HitAndRemoveFirst(const SDL_Rect& bulletRect)
+    bool HitAndDamageFirst(const SDL_Rect& bulletRect, int damage)
     {
         for (auto& t : targets_)
         {
-            if (!t.alive)
+            if (t.health.IsDead())
                 continue;
 
             if (SDL_HasIntersection(&bulletRect, &t.rect))
             {
-                t.alive = false;
+                t.health.ApplyDamage(damage);
                 return true;
             }
         }
+
         return false;
     }
 
@@ -60,7 +65,7 @@ public:
     {
         targets_.erase(
             std::remove_if(targets_.begin(), targets_.end(),
-                [](const Target& t) { return !t.alive; }),
+                [](const Target& t) { return t.health.IsDead(); }),
             targets_.end()
         );
     }
