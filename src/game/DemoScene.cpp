@@ -355,7 +355,7 @@ void DemoScene::Update(double dtSeconds, const Input& input, const EngineContext
             [this](const BulletSystem2D::Bullet& b)
             {
                 SDL_Rect br = bullets_.BulletRect(b);
-                return targets_.HitAndDamageFirst(br, 1);
+                return targets_.HitAndDamageFirst(br, b.damage);
             }),
         activeBullets.end()
     );
@@ -871,6 +871,7 @@ void DemoScene::OnEnter()
     mechGun.bulletLife = 1.0;
     mechGun.bulletW = 8;
     mechGun.bulletH = 8;
+    mechGun.bulletDamage = 1;
     mechGun.fireMode = WeaponFireMode::AlternatingMuzzles;
 
     primaryWeapon_.SetDefinition(mechGun);
@@ -880,9 +881,9 @@ void DemoScene::OnEnter()
 
     // Temporary demo targets (engine system test)
     targets_.AddTarget(SDL_Rect{ 900, 500, 48, 48 }, 3);
-    targets_.AddTarget(SDL_Rect{ 1100, 700, 48, 48 }, 3);
-    targets_.AddTarget(SDL_Rect{ 1400, 900, 48, 48 }, 3);
-    targets_.AddTarget(SDL_Rect{ 1700, 650, 48, 48 }, 3);
+    targets_.AddTarget(SDL_Rect{ 1100, 700, 48, 48 }, 5);
+    targets_.AddTarget(SDL_Rect{ 1400, 900, 48, 48 }, 1);
+    targets_.AddTarget(SDL_Rect{ 1700, 650, 48, 48 }, 10);
 }
 
 void DemoScene::OnExit()

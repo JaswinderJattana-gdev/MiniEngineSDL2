@@ -18,6 +18,7 @@ struct WeaponDefinition2D
 
     int bulletW = 8;
     int bulletH = 8;
+    int bulletDamage = 1;
 
     WeaponFireMode fireMode = WeaponFireMode::AlternatingMuzzles;
 };

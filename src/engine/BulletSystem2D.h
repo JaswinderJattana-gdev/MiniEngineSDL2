@@ -16,6 +16,7 @@ public:
         double life = 0.0;
         int w = 8;
         int h = 8;
+        int damage = 1;
     };
 
     void Clear()
@@ -34,7 +35,7 @@ public:
         obstacles_ = obstacles;
     }
 
-    void Spawn(const Vec2& worldPos, const Vec2& dirNormalized, double speed, double lifeSeconds, int w = 8, int h = 8)
+    void Spawn(const Vec2& worldPos, const Vec2& dirNormalized, double speed, double lifeSeconds, int w = 8, int h = 8, int damage = 1)
     {
         Bullet b;
         b.pos = worldPos;
@@ -42,6 +43,7 @@ public:
         b.life = lifeSeconds;
         b.w = w;
         b.h = h;
+        b.damage = damage;
         bullets_.push_back(b);
     }
 

@@ -27,7 +27,8 @@ bool WeaponInstance2D::TryFire(
                 def_.bulletSpeed,
                 def_.bulletLife,
                 def_.bulletW,
-                def_.bulletH
+                def_.bulletH,
+                def_.bulletDamage
             );
         }
     }
@@ -42,7 +43,8 @@ bool WeaponInstance2D::TryFire(
             def_.bulletSpeed,
             def_.bulletLife,
             def_.bulletW,
-            def_.bulletH
+            def_.bulletH,
+            def_.bulletDamage   
         );
 
         nextMuzzle_ = (nextMuzzle_ + 1) % static_cast<int>(muzzleWorldPositions.size());
