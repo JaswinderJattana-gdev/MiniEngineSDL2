@@ -355,12 +355,20 @@ void DemoScene::Update(double dtSeconds, const Input& input, const EngineContext
             [this](const BulletSystem2D::Bullet& b)
             {
                 SDL_Rect br = bullets_.BulletRect(b);
-                return targets_.HitAndDamageFirst(br, b.damage);
+
+                if (targets_.HitAndDamageFirst(br, b.damage))
+                    return true;
+
+                if (enemies_.HitAndDamageFirst(br, b.damage))
+                    return true;
+
+                return false;
             }),
         activeBullets.end()
     );
 
     targets_.RemoveDead();
+    enemies_.RemoveDead();
    
     // Camera follow (center player)
     camera_.SetViewSize(ctx.logicalW, ctx.logicalH);
@@ -450,6 +458,9 @@ void DemoScene::Render(Renderer& renderer, const EngineContext& ctx)
 
     // Draw targets (world -> screen)
     targets_.Render(renderer, camForRender);
+
+	// Draw enemies (world -> screen)
+    enemies_.Render(renderer, camForRender);
 
 	// Draw bullets (world -> screen)
     bullets_.Render(renderer, camForRender);
@@ -884,6 +895,13 @@ void DemoScene::OnEnter()
     targets_.AddTarget(SDL_Rect{ 1100, 700, 48, 48 }, 5);
     targets_.AddTarget(SDL_Rect{ 1400, 900, 48, 48 }, 1);
     targets_.AddTarget(SDL_Rect{ 1700, 650, 48, 48 }, 10);
+
+    enemies_.Clear();
+
+    // Temporary test enemies
+    enemies_.AddEnemy(SDL_Rect{ 800, 900, 56, 56 }, 3);
+    enemies_.AddEnemy(SDL_Rect{ 1200, 1100, 56, 56 }, 3);
+    enemies_.AddEnemy(SDL_Rect{ 1600, 1300, 56, 56 }, 3);
 }
 
 void DemoScene::OnExit()

@@ -10,6 +10,7 @@
 #include "../engine/CollisionWorld2D.h"
 #include "../engine/BulletSystem2D.h"
 #include "../engine/TargetSystem2D.h"
+#include "../engine/EnemySystem2D.h"
 #include "../engine/WeaponSystem2D.h"
 #include <vector>
 #include <SDL.h>
@@ -117,6 +118,8 @@ private:
     bool drawMuzzleDebug_ = true;
 
     TargetSystem2D targets_;
+
+    EnemySystem2D enemies_;
 
     WeaponInstance2D primaryWeapon_;
 
