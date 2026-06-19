@@ -899,9 +899,10 @@ void DemoScene::OnEnter()
     enemies_.Clear();
 
     // Temporary test enemies
-    enemies_.AddEnemy(SDL_Rect{ 800, 900, 56, 56 }, 3);
-    enemies_.AddEnemy(SDL_Rect{ 1200, 1100, 56, 56 }, 3);
-    enemies_.AddEnemy(SDL_Rect{ 1600, 1300, 56, 56 }, 3);
+    enemies_.TryAddEnemy(SDL_Rect{ 500, 300, 56, 56 }, 3, & obstacles_);
+    enemies_.TryAddEnemy(SDL_Rect{ 800, 900, 56, 56 }, 5, & obstacles_);
+    enemies_.TryAddEnemy(SDL_Rect{ 1200, 1100, 56, 56 }, 3, & obstacles_);
+    enemies_.TryAddEnemy(SDL_Rect{ 1600, 1300, 56, 56 }, 3, & obstacles_);
 }
 
 void DemoScene::OnExit()

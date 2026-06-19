@@ -40,6 +40,24 @@ public:
 
             SDL_Rect r = cam.WorldToScreenRect(e.rect);
             renderer.FillRect(r.x, r.y, r.w, r.h);
+
+            // HP bar background
+            renderer.SetDrawColor(40, 40, 40, 255);
+            renderer.FillRect(r.x, r.y - 8, r.w, 4);
+
+            // HP bar fill
+            const double t =
+                (e.health.maxHp > 0)
+                ? static_cast<double>(e.health.hp) / static_cast<double>(e.health.maxHp)
+                : 0.0;
+
+            renderer.SetDrawColor(0, 220, 0, 255);
+            renderer.FillRect(
+                r.x,
+                r.y - 8,
+                static_cast<int>(r.w * t),
+                4
+            );
         }
     }
 
@@ -67,6 +85,38 @@ public:
                 [](const Enemy& e) { return e.health.IsDead(); }),
             enemies_.end()
         );
+    }
+
+    bool CanPlaceEnemy(const SDL_Rect& rect, const std::vector<SDL_Rect>* obstacles = nullptr) const
+    {
+        if (obstacles)
+        {
+            for (const auto& o : *obstacles)
+            {
+                if (SDL_HasIntersection(&rect, &o))
+                    return false;
+            }
+        }
+
+        for (const auto& e : enemies_)
+        {
+            if (e.health.IsDead())
+                continue;
+
+            if (SDL_HasIntersection(&rect, &e.rect))
+                return false;
+        }
+
+        return true;
+    }
+
+    bool TryAddEnemy(const SDL_Rect& rect, int hp = 1, const std::vector<SDL_Rect>* obstacles = nullptr)
+    {
+        if (!CanPlaceEnemy(rect, obstacles))
+            return false;
+
+        AddEnemy(rect, hp);
+        return true;
     }
 
     const std::vector<Enemy>& Enemies() const { return enemies_; }
