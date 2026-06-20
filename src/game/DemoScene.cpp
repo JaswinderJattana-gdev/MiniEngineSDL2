@@ -398,6 +398,12 @@ void DemoScene::Update(double dtSeconds, const Input& input, const EngineContext
         worldPos_.y + h_ * 0.5
     };
 
+	// Make enemies move toward player
+    enemies_.SetVelocityTowardPoint(playerCenter, 80.0);
+
+	// Update enemies
+    enemies_.Update(dtSeconds);
+
     Vec2 aimDir{
         static_cast<double>(mouseWorld.x) - playerCenter.x,
         static_cast<double>(mouseWorld.y) - playerCenter.y

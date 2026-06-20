@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <SDL.h>
 
+#include "math/Vec2.h"
 #include "HealthSystem2D.h"
 #include "Renderer.h"
 #include "Camera2D.h"
@@ -14,6 +15,9 @@ public:
     {
         SDL_Rect rect{};
         HealthComponent2D health{};
+
+        Vec2 pos{};
+        Vec2 vel{};
     };
 
     void Clear()
@@ -26,6 +30,8 @@ public:
         Enemy e;
         e.rect = rect;
         e.health.SetMax(hp);
+        e.pos.x = static_cast<double>(rect.x);
+        e.pos.y = static_cast<double>(rect.y);
         enemies_.push_back(e);
     }
 
@@ -58,6 +64,44 @@ public:
                 static_cast<int>(r.w * t),
                 4
             );
+        }
+    }
+
+    void Update(double dtSeconds)
+    {
+        for (auto& e : enemies_)
+        {
+            if (e.health.IsDead())
+                continue;
+
+            e.pos += e.vel * dtSeconds;
+
+            e.rect.x = static_cast<int>(std::round(e.pos.x));
+            e.rect.y = static_cast<int>(std::round(e.pos.y));
+        }
+    }
+
+    void SetVelocityTowardPoint(const Vec2& target, double speed)
+    {
+        for (auto& e : enemies_)
+        {
+            if (e.health.IsDead())
+                continue;
+
+            Vec2 center{
+                e.pos.x + e.rect.w * 0.5,
+                e.pos.y + e.rect.h * 0.5
+            };
+
+            Vec2 toTarget = target - center;
+
+            if (toTarget.Length() <= 0.0001)
+            {
+                e.vel = Vec2{ 0.0, 0.0 };
+                continue;
+            }
+
+            e.vel = toTarget.Normalized() * speed;
         }
     }
 
