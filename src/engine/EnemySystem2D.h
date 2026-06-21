@@ -122,6 +122,20 @@ public:
         return false;
     }
 
+    bool AnyEnemyIntersects(const SDL_Rect& rect) const
+    {
+        for (const auto& e : enemies_)
+        {
+            if (e.health.IsDead())
+                continue;
+
+            if (SDL_HasIntersection(&rect, &e.rect))
+                return true;
+        }
+
+        return false;
+    }
+
     void RemoveDead()
     {
         enemies_.erase(

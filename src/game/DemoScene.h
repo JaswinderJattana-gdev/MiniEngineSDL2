@@ -12,6 +12,7 @@
 #include "../engine/TargetSystem2D.h"
 #include "../engine/EnemySystem2D.h"
 #include "../engine/WeaponSystem2D.h"
+#include "../engine/HealthSystem2D.h"
 #include <vector>
 #include <SDL.h>
 #include <array>
@@ -122,6 +123,12 @@ private:
     EnemySystem2D enemies_;
 
     WeaponInstance2D primaryWeapon_;
+
+    HealthComponent2D playerHealth_;
+
+    double playerDamageCooldown_ = 0.0;
+    double playerDamageInterval_ = 0.6;
+    int enemyContactDamage_ = 10;
 
     Camera2D camera_;
 

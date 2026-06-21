@@ -347,6 +347,9 @@ void DemoScene::Update(double dtSeconds, const Input& input, const EngineContext
     // Update bullets
     bullets_.Update(dtSeconds);
 
+    // Update enemy damage cooldown
+    playerDamageCooldown_ = std::max(0.0, playerDamageCooldown_ - dtSeconds);
+
     // Bullet vs target hit detection
     auto& activeBullets = bullets_.Bullets();
 
@@ -369,7 +372,7 @@ void DemoScene::Update(double dtSeconds, const Input& input, const EngineContext
 
     targets_.RemoveDead();
     enemies_.RemoveDead();
-   
+
     // Camera follow (center player)
     camera_.SetViewSize(ctx.logicalW, ctx.logicalH);
     camera_.SetWorldSize(worldW_, worldH_);
@@ -403,6 +406,15 @@ void DemoScene::Update(double dtSeconds, const Input& input, const EngineContext
 
 	// Update enemies
     enemies_.Update(dtSeconds);
+
+	// Check enemy vs player collisions and apply damage
+    SDL_Rect playerFeet = FeetRectWorld();
+
+    if (playerDamageCooldown_ <= 0.0 && enemies_.AnyEnemyIntersects(playerFeet))
+    {
+        playerHealth_.ApplyDamage(enemyContactDamage_);
+        playerDamageCooldown_ = playerDamageInterval_;
+    }
 
     Vec2 aimDir{
         static_cast<double>(mouseWorld.x) - playerCenter.x,
@@ -580,7 +592,7 @@ void DemoScene::Render(Renderer& renderer, const EngineContext& ctx)
     // HUD panel (screen space)
     SDL_SetRenderDrawBlendMode(renderer.Raw(), SDL_BLENDMODE_BLEND);
     SDL_SetRenderDrawColor(renderer.Raw(), 0, 0, 0, 140);
-    SDL_Rect panel{ 10, 10, 160, 54 };
+    SDL_Rect panel{ 10, 10, 160, 76 };
     SDL_RenderFillRect(renderer.Raw(), &panel);
 
     // State indicators
@@ -600,7 +612,7 @@ void DemoScene::Render(Renderer& renderer, const EngineContext& ctx)
     renderer.SetDrawColor(debugDraw_ ? 220 : 70, debugDraw_ ? 220 : 70, 0, 255);
     renderer.FillRect(x, y, 14, 14);
 
-    // Speed bar (bottom of panel)
+    // Speed bar
     const double speedNow = ctx.gameCfg.playerSpeed * (dashing_ ? dashSpeedMult_ : 1.0);
     const double maxShown = ctx.gameCfg.playerSpeed * dashSpeedMult_;
     const double t = std::clamp(speedNow / maxShown, 0.0, 1.0);
@@ -610,6 +622,18 @@ void DemoScene::Render(Renderer& renderer, const EngineContext& ctx)
 
     renderer.SetDrawColor(120, 220, 120, 255);
     renderer.FillRect(18, 40, static_cast<int>(140 * t), 8);
+
+    // Player health bar
+    const double hpT =
+        (playerHealth_.maxHp > 0)
+        ? static_cast<double>(playerHealth_.hp) / static_cast<double>(playerHealth_.maxHp)
+        : 0.0;
+
+    renderer.SetDrawColor(200, 200, 200, 255);
+    renderer.DrawRect(18, 56, 140, 8);
+
+    renderer.SetDrawColor(220, 70, 70, 255);
+    renderer.FillRect(18, 56, static_cast<int>(140 * hpT), 8);
 
     // DEBUG: prove FillRect works
     // renderer.SetDrawColor(255, 0, 255, 255);
@@ -893,6 +917,9 @@ void DemoScene::OnEnter()
 
     primaryWeapon_.SetDefinition(mechGun);
     primaryWeapon_.Reset();
+
+	// Player state
+    playerHealth_.SetMax(100);
 
     targets_.Clear();
 
