@@ -50,6 +50,8 @@ public:
 
     SDL_Rect FeetRectWorld() const;
 
+    void ResetDemo();
+
     // Mech visual sheets
     SpriteSheet mechLowerSheet_;
     SpriteSheet mechUpperSheet_;

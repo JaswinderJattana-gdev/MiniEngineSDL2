@@ -416,6 +416,12 @@ void DemoScene::Update(double dtSeconds, const Input& input, const EngineContext
         playerDamageCooldown_ = playerDamageInterval_;
     }
 
+	// If player died, respawn at start with full health and clear bullets/targets/enemies/particles
+    if (playerHealth_.IsDead())
+    {
+        ResetDemo();
+    }
+
     Vec2 aimDir{
         static_cast<double>(mouseWorld.x) - playerCenter.x,
         static_cast<double>(mouseWorld.y) - playerCenter.y
@@ -936,6 +942,19 @@ void DemoScene::OnEnter()
     enemies_.TryAddEnemy(SDL_Rect{ 800, 900, 56, 56 }, 5, & obstacles_);
     enemies_.TryAddEnemy(SDL_Rect{ 1200, 1100, 56, 56 }, 3, & obstacles_);
     enemies_.TryAddEnemy(SDL_Rect{ 1600, 1300, 56, 56 }, 3, & obstacles_);
+}
+
+void DemoScene::ResetDemo()
+{
+    worldPos_ = Vec2{ 10.0, 10.0 };
+
+    playerHealth_.SetMax(100);
+
+    enemies_.Clear();
+
+    enemies_.TryAddEnemy(SDL_Rect{ 800, 900, 56, 56 }, 10, &obstacles_);
+    enemies_.TryAddEnemy(SDL_Rect{ 500, 100, 56, 56 }, 3, &obstacles_);
+    enemies_.TryAddEnemy(SDL_Rect{ 200, 300, 56, 56 }, 3, &obstacles_);
 }
 
 void DemoScene::OnExit()
