@@ -24,6 +24,25 @@ namespace LevelIO
                 << o.h << "\n";
         }
 
+        for (const auto& e : level.enemies)
+        {
+            out << "ENEMY "
+                << e.rect.x << " "
+                << e.rect.y << " "
+                << e.rect.w << " "
+                << e.rect.h << " "
+                << e.hp << "\n";
+        }
+
+        for (const auto& d : level.destructibles)
+        {
+            out << "DESTRUCTIBLE "
+                << d.rect.x << " "
+                << d.rect.y << " "
+                << d.rect.w << " "
+                << d.rect.h << " "
+                << d.hp << "\n";
+        }
         return true;
     }
 
@@ -58,6 +77,19 @@ namespace LevelIO
                 SDL_Rect r{};
                 iss >> r.x >> r.y >> r.w >> r.h;
                 loaded.obstacles.push_back(r);
+            }
+
+            else if (tag == "ENEMY")
+            {
+                LevelObjectData e{};
+                iss >> e.rect.x >> e.rect.y >> e.rect.w >> e.rect.h >> e.hp;
+                loaded.enemies.push_back(e);
+            }
+            else if (tag == "DESTRUCTIBLE")
+            {
+                LevelObjectData d{};
+                iss >> d.rect.x >> d.rect.y >> d.rect.w >> d.rect.h >> d.hp;
+                loaded.destructibles.push_back(d);
             }
             else
             {
