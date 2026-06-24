@@ -792,6 +792,9 @@ void DemoScene::OnEnter()
     obstacles_.clear();
     particles_.Clear();
 
+    loadedEnemies_.clear();
+    loadedDestructibles_.clear();
+
     // Try loading a level from file first
     LevelData loadedLevel;
     const bool levelLoaded = LevelIO::LoadFromFile("assets/levels/test_level.txt", loadedLevel);
@@ -805,6 +808,9 @@ void DemoScene::OnEnter()
         worldPos_.y = static_cast<double>(loadedLevel.playerSpawn.y);
 
         obstacles_ = loadedLevel.obstacles;
+
+        loadedEnemies_ = loadedLevel.enemies;
+        loadedDestructibles_ = loadedLevel.destructibles;
     }
     else
     {
@@ -929,19 +935,39 @@ void DemoScene::OnEnter()
 
     targets_.Clear();
 
-    // Temporary demo targets (engine system test)
-    targets_.AddTarget(SDL_Rect{ 900, 500, 48, 48 }, 3);
-    targets_.AddTarget(SDL_Rect{ 1100, 700, 48, 48 }, 5);
-    targets_.AddTarget(SDL_Rect{ 1400, 900, 48, 48 }, 1);
-    targets_.AddTarget(SDL_Rect{ 1700, 650, 48, 48 }, 10);
+	// Load destructibles from level file if available, otherwise fallback to test destructibles
+    if (!loadedDestructibles_.empty())
+    {
+        for (const auto& d : loadedDestructibles_)
+        {
+            targets_.AddTarget(d.rect, d.hp);
+        }
+    }
+    else
+    {
+        // Fallback destructible test targets
+        targets_.AddTarget(SDL_Rect{ 900, 500, 48, 48 }, 3);
+        targets_.AddTarget(SDL_Rect{ 1100, 700, 48, 48 }, 3);
+        targets_.AddTarget(SDL_Rect{ 1400, 900, 48, 48 }, 3);
+    }
 
     enemies_.Clear();
 
-    // Temporary test enemies
-    enemies_.TryAddEnemy(SDL_Rect{ 500, 300, 56, 56 }, 3, & obstacles_);
-    enemies_.TryAddEnemy(SDL_Rect{ 800, 900, 56, 56 }, 5, & obstacles_);
-    enemies_.TryAddEnemy(SDL_Rect{ 1200, 1100, 56, 56 }, 3, & obstacles_);
-    enemies_.TryAddEnemy(SDL_Rect{ 1600, 1300, 56, 56 }, 3, & obstacles_);
+	// Load enemies from level file if available, otherwise fallback to test enemies
+    if (!loadedEnemies_.empty())
+    {
+        for (const auto& e : loadedEnemies_)
+        {
+            enemies_.TryAddEnemy(e.rect, e.hp, &obstacles_);
+        }
+    }
+    else
+    {
+        // Fallback test enemies
+        enemies_.TryAddEnemy(SDL_Rect{ 800, 900, 56, 56 }, 5, &obstacles_);
+        enemies_.TryAddEnemy(SDL_Rect{ 1200, 1100, 56, 56 }, 3, &obstacles_);
+        enemies_.TryAddEnemy(SDL_Rect{ 1200, 1300, 56, 56 }, 3, &obstacles_);
+    }
 }
 
 void DemoScene::ResetDemo()

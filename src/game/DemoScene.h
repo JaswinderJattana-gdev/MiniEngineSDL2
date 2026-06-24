@@ -6,6 +6,7 @@
 #include "../engine/SpriteSheet.h"
 #include "../engine/Animator.h"
 #include "../engine/Camera2D.h"
+#include "../engine/LevelData.h"
 #include "../engine/ParticleSystem2D.h"
 #include "../engine/CollisionWorld2D.h"
 #include "../engine/BulletSystem2D.h"
@@ -119,6 +120,9 @@ private:
     std::array<std::array<SDL_Point, MECH_GUN_COUNT>, MECH_UPPER_FRAMES> mechMuzzleMap_{};
 
     bool drawMuzzleDebug_ = true;
+
+    std::vector<LevelObjectData> loadedEnemies_;
+    std::vector<LevelObjectData> loadedDestructibles_;
 
     TargetSystem2D targets_;
 
