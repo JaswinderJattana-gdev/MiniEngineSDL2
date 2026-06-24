@@ -145,4 +145,6 @@ private:
     // camera shake
     double shakeTimeLeft_ = 0.0;
     double shakeStrength_ = 2.0;
+
+    bool levelWon_ = false;
 };

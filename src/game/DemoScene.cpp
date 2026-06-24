@@ -373,6 +373,12 @@ void DemoScene::Update(double dtSeconds, const Input& input, const EngineContext
     targets_.RemoveDead();
     enemies_.RemoveDead();
 
+	// Check win condition (all enemies dead)
+    if (!levelWon_ && enemies_.AllDead())
+    {
+        levelWon_ = true;
+    }
+
     // Camera follow (center player)
     camera_.SetViewSize(ctx.logicalW, ctx.logicalH);
     camera_.SetWorldSize(worldW_, worldH_);
@@ -401,11 +407,12 @@ void DemoScene::Update(double dtSeconds, const Input& input, const EngineContext
         worldPos_.y + h_ * 0.5
     };
 
-	// Make enemies move toward player
-    enemies_.SetVelocityTowardPoint(playerCenter, 80.0);
-
-	// Update enemies
-    enemies_.Update(dtSeconds);
+	// Update enemies to move toward player (only if level not won)
+    if (!levelWon_)
+    {
+        enemies_.SetVelocityTowardPoint(playerCenter, 80.0);
+        enemies_.Update(dtSeconds);
+    }
 
 	// Check enemy vs player collisions and apply damage
     SDL_Rect playerFeet = FeetRectWorld();
@@ -616,6 +623,11 @@ void DemoScene::Render(Renderer& renderer, const EngineContext& ctx)
     x += 22;
     // DEBUG indicator (yellow when debugDraw)
     renderer.SetDrawColor(debugDraw_ ? 220 : 70, debugDraw_ ? 220 : 70, 0, 255);
+    renderer.FillRect(x, y, 14, 14);
+
+    x += 22;
+    // WIN indicator (cyan when level cleared)
+    renderer.SetDrawColor(levelWon_ ? 0 : 70, levelWon_ ? 220 : 70, levelWon_ ? 220 : 70, 255);
     renderer.FillRect(x, y, 14, 14);
 
     // Speed bar
@@ -968,6 +980,8 @@ void DemoScene::OnEnter()
         enemies_.TryAddEnemy(SDL_Rect{ 1200, 1100, 56, 56 }, 3, &obstacles_);
         enemies_.TryAddEnemy(SDL_Rect{ 1200, 1300, 56, 56 }, 3, &obstacles_);
     }
+
+    levelWon_ = false;
 }
 
 void DemoScene::ResetDemo()

@@ -177,6 +177,24 @@ public:
         return true;
     }
 
+    int AliveCount() const
+    {
+        int count = 0;
+
+        for (const auto& e : enemies_)
+        {
+            if (e.health.IsAlive())
+                ++count;
+        }
+
+        return count;
+    }
+
+    bool AllDead() const
+    {
+        return AliveCount() == 0;
+    }
+
     const std::vector<Enemy>& Enemies() const { return enemies_; }
     std::vector<Enemy>& Enemies() { return enemies_; }
 
