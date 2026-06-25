@@ -809,7 +809,7 @@ void DemoScene::OnEnter()
 
     // Try loading a level from file first
     LevelData loadedLevel;
-    const bool levelLoaded = LevelIO::LoadFromFile("assets/levels/test_level.txt", loadedLevel);
+    const bool levelLoaded = LevelIO::LoadFromFile("assets/levels/level01.txt", loadedLevel);
 
     if (levelLoaded)
     {
@@ -826,7 +826,7 @@ void DemoScene::OnEnter()
     }
     else
     {
-        Log::Warn("Could not load assets/levels/test_level.txt. Falling back to procedural obstacle generation.");
+        Log::Warn("Could not load assets/levels/level01.txt. Falling back to procedural obstacle generation.");
         // --- Tuning knobs ---
         const int cell = 320;        // spacing between obstacle "cells" (bigger = less dense)
         const int margin = 120;      // keep obstacles away from world edges

@@ -125,6 +125,29 @@ if (ME_WARNINGS_AS_ERRORS)
     endif()
 endif()
 
+# Portable game export folder
+set(ME_EXPORT_NAME "MechShooter_Level01")
+set(ME_EXPORT_DIR "${CMAKE_SOURCE_DIR}/export/${ME_EXPORT_NAME}")
+
+add_custom_command(TARGET MiniEngineSDL2 POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory
+        "${ME_EXPORT_DIR}"
+
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        $<TARGET_FILE:MiniEngineSDL2>
+        "${ME_EXPORT_DIR}/Mechshooterlvl01.exe"
+
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        $<TARGET_RUNTIME_DLLS:MiniEngineSDL2>
+        "${ME_EXPORT_DIR}"
+
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_SOURCE_DIR}/assets"
+        "${ME_EXPORT_DIR}/assets"
+
+    COMMAND_EXPAND_LISTS
+)
+
 # Warnings
 if (MSVC)
     target_compile_options(MiniEngineSDL2 PRIVATE /W4 /permissive-)
