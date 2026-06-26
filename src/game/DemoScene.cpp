@@ -1,6 +1,7 @@
 #include "DemoScene.h"
 #include "MenuScene.h"
 #include "PauseScene.h"
+#include "GamePaths.h"
 
 #include "../engine/SceneManager.h"
 #include "../engine/Input.h"
@@ -19,6 +20,7 @@
 #include <algorithm>
 #include <memory>
 #include <cmath>
+#include <string>
 
 namespace
 {
@@ -809,7 +811,7 @@ void DemoScene::OnEnter()
 
     // Try loading a level from file first
     LevelData loadedLevel;
-    const bool levelLoaded = LevelIO::LoadFromFile("assets/levels/level01.txt", loadedLevel);
+    const bool levelLoaded = LevelIO::LoadFromFile(GamePaths::PlayableLevel, loadedLevel);
 
     if (levelLoaded)
     {
@@ -826,7 +828,7 @@ void DemoScene::OnEnter()
     }
     else
     {
-        Log::Warn("Could not load assets/levels/level01.txt. Falling back to procedural obstacle generation.");
+        Log::Warn(std::string("Could not load ") + GamePaths::PlayableLevel + ". Falling back to procedural obstacle generation.");
         // --- Tuning knobs ---
         const int cell = 320;        // spacing between obstacle "cells" (bigger = less dense)
         const int margin = 120;      // keep obstacles away from world edges
