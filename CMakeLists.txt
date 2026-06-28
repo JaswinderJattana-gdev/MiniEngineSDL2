@@ -146,6 +146,10 @@ add_custom_command(TARGET MiniEngineSDL2 POST_BUILD
         "${CMAKE_SOURCE_DIR}/assets"
         "${ME_EXPORT_DIR}/assets"
 
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    "${CMAKE_SOURCE_DIR}/export_readme.txt"
+    "${ME_EXPORT_DIR}/README.txt"
+
     COMMAND_EXPAND_LISTS
 )
 
