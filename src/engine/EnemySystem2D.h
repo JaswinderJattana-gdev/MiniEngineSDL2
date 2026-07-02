@@ -2,22 +2,21 @@
 #include <vector>
 #include <algorithm>
 #include <SDL.h>
+#include <cmath>
 
 #include "math/Vec2.h"
 #include "HealthSystem2D.h"
 #include "Renderer.h"
 #include "Camera2D.h"
+#include "Entity2D.h"
 
 class EnemySystem2D
 {
 public:
     struct Enemy
     {
-        SDL_Rect rect{};
+        Entity2D entity{};
         HealthComponent2D health{};
-
-        Vec2 pos{};
-        Vec2 vel{};
     };
 
     void Clear()
@@ -28,10 +27,11 @@ public:
     void AddEnemy(const SDL_Rect& rect, int hp = 1)
     {
         Enemy e;
-        e.rect = rect;
+        e.entity.position = Vec2{ static_cast<double>(rect.x), static_cast<double>(rect.y) };
+        e.entity.velocity = Vec2{ 0.0, 0.0 };
+        e.entity.bounds = rect;
+        e.entity.active = true;
         e.health.SetMax(hp);
-        e.pos.x = static_cast<double>(rect.x);
-        e.pos.y = static_cast<double>(rect.y);
         enemies_.push_back(e);
     }
 
@@ -44,7 +44,7 @@ public:
             if (e.health.IsDead())
                 continue;
 
-            SDL_Rect r = cam.WorldToScreenRect(e.rect);
+            SDL_Rect r = cam.WorldToScreenRect(e.entity.bounds);
             renderer.FillRect(r.x, r.y, r.w, r.h);
 
             // HP bar background
@@ -71,13 +71,13 @@ public:
     {
         for (auto& e : enemies_)
         {
-            if (e.health.IsDead())
+            if (e.health.IsDead() || !e.entity.active)
                 continue;
 
-            e.pos += e.vel * dtSeconds;
+            e.entity.position += e.entity.velocity * dtSeconds;
 
-            e.rect.x = static_cast<int>(std::round(e.pos.x));
-            e.rect.y = static_cast<int>(std::round(e.pos.y));
+            e.entity.bounds.x = static_cast<int>(std::round(e.entity.position.x));
+            e.entity.bounds.y = static_cast<int>(std::round(e.entity.position.y));
         }
     }
 
@@ -89,19 +89,19 @@ public:
                 continue;
 
             Vec2 center{
-                e.pos.x + e.rect.w * 0.5,
-                e.pos.y + e.rect.h * 0.5
+                e.entity.position.x + e.entity.bounds.w * 0.5,
+                e.entity.position.y + e.entity.bounds.h * 0.5
             };
 
             Vec2 toTarget = target - center;
 
             if (toTarget.Length() <= 0.0001)
             {
-                e.vel = Vec2{ 0.0, 0.0 };
+                e.entity.velocity = Vec2{ 0.0, 0.0 };
                 continue;
             }
 
-            e.vel = toTarget.Normalized() * speed;
+            e.entity.velocity = toTarget.Normalized() * speed;
         }
     }
 
@@ -112,7 +112,7 @@ public:
             if (e.health.IsDead())
                 continue;
 
-            if (SDL_HasIntersection(&bulletRect, &e.rect))
+            if (SDL_HasIntersection(&bulletRect, &e.entity.bounds))
             {
                 e.health.ApplyDamage(damage);
                 return true;
@@ -129,7 +129,7 @@ public:
             if (e.health.IsDead())
                 continue;
 
-            if (SDL_HasIntersection(&rect, &e.rect))
+            if (SDL_HasIntersection(&rect, &e.entity.bounds))
                 return true;
         }
 
@@ -161,7 +161,7 @@ public:
             if (e.health.IsDead())
                 continue;
 
-            if (SDL_HasIntersection(&rect, &e.rect))
+            if (SDL_HasIntersection(&rect, &e.entity.bounds))
                 return false;
         }
 
