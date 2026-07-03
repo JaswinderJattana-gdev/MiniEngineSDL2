@@ -9,7 +9,9 @@ void BulletSystem2D::Update(double dtSeconds)
         b.life -= dtSeconds;
         if (b.life > 0.0)
         {
-            b.pos += b.vel * dtSeconds;
+            b.entity.position += b.entity.velocity * dtSeconds;
+            b.entity.bounds.x = static_cast<int>(std::round(b.entity.position.x));
+            b.entity.bounds.y = static_cast<int>(std::round(b.entity.position.y));
         }
     }
 
@@ -38,18 +40,20 @@ void BulletSystem2D::Render(Renderer& renderer, const Camera2D& cam) const
 
     for (const auto& b : bullets_)
     {
-        const int sx = cam.WorldToScreenX(b.pos.x);
-        const int sy = cam.WorldToScreenY(b.pos.y);
-        renderer.FillRect(sx, sy, b.w, b.h);
+        SDL_Rect r = cam.WorldToScreenRect(b.entity.bounds);
+        renderer.FillRect(r.x, r.y, r.w, r.h);
     }
 }
 
 bool BulletSystem2D::IsOutOfWorld(const Bullet& b) const
 {
-    if (b.pos.x + b.w < 0.0) return true;
-    if (b.pos.y + b.h < 0.0) return true;
-    if (b.pos.x > static_cast<double>(worldW_)) return true;
-    if (b.pos.y > static_cast<double>(worldH_)) return true;
+    const SDL_Rect& r = b.entity.bounds;
+
+    if (r.x + r.w < 0) return true;
+    if (r.y + r.h < 0) return true;
+    if (r.x > worldW_) return true;
+    if (r.y > worldH_) return true;
+
     return false;
 }
 
@@ -71,10 +75,5 @@ bool BulletSystem2D::HitsObstacle(const Bullet& b) const
 
 SDL_Rect BulletSystem2D::BulletRect(const Bullet& b) const
 {
-    return SDL_Rect{
-        static_cast<int>(std::round(b.pos.x)),
-        static_cast<int>(std::round(b.pos.y)),
-        b.w,
-        b.h
-    };
+    return b.entity.bounds;
 }

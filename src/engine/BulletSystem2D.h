@@ -1,21 +1,20 @@
 #pragma once
 #include <vector>
 #include <SDL.h>
+#include <cmath>
 
 #include "math/Vec2.h"
 #include "Renderer.h"
 #include "Camera2D.h"
+#include "Entity2D.h"
 
 class BulletSystem2D
 {
 public:
     struct Bullet
     {
-        Vec2 pos;
-        Vec2 vel;
+        Entity2D entity{};
         double life = 0.0;
-        int w = 8;
-        int h = 8;
         int damage = 1;
     };
 
@@ -38,11 +37,16 @@ public:
     void Spawn(const Vec2& worldPos, const Vec2& dirNormalized, double speed, double lifeSeconds, int w = 8, int h = 8, int damage = 1)
     {
         Bullet b;
-        b.pos = worldPos;
-        b.vel = dirNormalized * speed;
+        b.entity.position = worldPos;
+        b.entity.velocity = dirNormalized * speed;
+        b.entity.bounds = SDL_Rect{
+            static_cast<int>(std::round(worldPos.x)),
+            static_cast<int>(std::round(worldPos.y)),
+            w,
+            h
+        };
+        b.entity.active = true;
         b.life = lifeSeconds;
-        b.w = w;
-        b.h = h;
         b.damage = damage;
         bullets_.push_back(b);
     }
