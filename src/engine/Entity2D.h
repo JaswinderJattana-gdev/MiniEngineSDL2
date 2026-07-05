@@ -15,3 +15,20 @@ struct Entity2D
 
     bool active = true;
 };
+
+class EntityIdGenerator2D
+{
+public:
+    uint32_t Next()
+    {
+        return nextId_++;
+    }
+
+    void Reset(uint32_t start = 1)
+    {
+        nextId_ = start;
+    }
+
+private:
+    uint32_t nextId_ = 1;
+};

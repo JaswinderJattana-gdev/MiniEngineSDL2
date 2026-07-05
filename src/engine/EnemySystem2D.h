@@ -22,12 +22,14 @@ public:
     void Clear()
     {
         enemies_.clear();
+        ids_.Reset();
     }
 
     void AddEnemy(const SDL_Rect& rect, int hp = 1)
     {
         Enemy e;
         e.entity.position = Vec2{ static_cast<double>(rect.x), static_cast<double>(rect.y) };
+        e.entity.id = ids_.Next();
         e.entity.velocity = Vec2{ 0.0, 0.0 };
         e.entity.bounds = rect;
         e.entity.active = true;
@@ -200,4 +202,5 @@ public:
 
 private:
     std::vector<Enemy> enemies_;
+    EntityIdGenerator2D ids_;
 };

@@ -20,12 +20,14 @@ public:
     void Clear()
     {
         targets_.clear();
+        ids_.Reset();
     }
 
     void AddTarget(const SDL_Rect& rect, int hp = 1)
     {
         Target t;
         t.entity.position = Vec2{ static_cast<double>(rect.x), static_cast<double>(rect.y) };
+        t.entity.id = ids_.Next();
         t.entity.velocity = Vec2{ 0.0, 0.0 };
         t.entity.bounds = rect;
         t.entity.active = true;
@@ -80,4 +82,5 @@ public:
 
 private:
     std::vector<Target> targets_;
+    EntityIdGenerator2D ids_;
 };

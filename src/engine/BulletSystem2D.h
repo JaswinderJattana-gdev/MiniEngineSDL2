@@ -21,6 +21,7 @@ public:
     void Clear()
     {
         bullets_.clear();
+        ids_.Reset();
     }
 
     void SetWorldSize(int w, int h)
@@ -38,6 +39,7 @@ public:
     {
         Bullet b;
         b.entity.position = worldPos;
+        b.entity.id = ids_.Next();
         b.entity.velocity = dirNormalized * speed;
         b.entity.bounds = SDL_Rect{
             static_cast<int>(std::round(worldPos.x)),
@@ -65,6 +67,7 @@ private:
 
 private:
     std::vector<Bullet> bullets_;
+    EntityIdGenerator2D ids_;
     int worldW_ = 0;
     int worldH_ = 0;
     const std::vector<SDL_Rect>* obstacles_ = nullptr;
