@@ -1,17 +1,19 @@
 #pragma once
 #include <vector>
 #include <SDL.h>
+#include <cmath>
 
 #include "Renderer.h"
 #include "Camera2D.h"
 #include "HealthSystem2D.h"
+#include "Entity2D.h"
 
 class TargetSystem2D
 {
 public:
     struct Target
     {
-        SDL_Rect rect{};
+        Entity2D entity{};
         HealthComponent2D health{};
     };
 
@@ -23,7 +25,10 @@ public:
     void AddTarget(const SDL_Rect& rect, int hp = 1)
     {
         Target t;
-        t.rect = rect;
+        t.entity.position = Vec2{ static_cast<double>(rect.x), static_cast<double>(rect.y) };
+        t.entity.velocity = Vec2{ 0.0, 0.0 };
+        t.entity.bounds = rect;
+        t.entity.active = true;
         t.health.SetMax(hp);
         targets_.push_back(t);
     }
@@ -37,7 +42,7 @@ public:
             if (t.health.IsDead())
                 continue;
 
-            SDL_Rect r = cam.WorldToScreenRect(t.rect);
+            SDL_Rect r = cam.WorldToScreenRect(t.entity.bounds);
             renderer.FillRect(r.x, r.y, r.w, r.h);
         }
     }
@@ -51,7 +56,7 @@ public:
             if (t.health.IsDead())
                 continue;
 
-            if (SDL_HasIntersection(&bulletRect, &t.rect))
+            if (SDL_HasIntersection(&bulletRect, &t.entity.bounds))
             {
                 t.health.ApplyDamage(damage);
                 return true;
