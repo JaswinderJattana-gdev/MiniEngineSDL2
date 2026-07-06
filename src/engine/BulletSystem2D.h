@@ -50,6 +50,7 @@ public:
         b.entity.active = true;
         b.life = lifeSeconds;
         b.damage = damage;
+        b.entity.tag = EntityTag::Bullet;
         bullets_.push_back(b);
     }
 

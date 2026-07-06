@@ -4,6 +4,22 @@
 #include <SDL.h>
 #include "math/Vec2.h"
 
+enum class EntityTag
+{
+    None,
+
+    Player,
+    Enemy,
+    Bullet,
+    Destructible,
+
+    Pickup,
+
+    Trigger,
+
+    Decoration
+};
+
 struct Entity2D
 {
     uint32_t id = 0;
@@ -14,6 +30,8 @@ struct Entity2D
     SDL_Rect bounds{};
 
     bool active = true;
+
+    EntityTag tag = EntityTag::None;
 };
 
 class EntityIdGenerator2D

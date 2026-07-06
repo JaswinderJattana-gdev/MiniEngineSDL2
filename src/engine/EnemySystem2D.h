@@ -34,6 +34,7 @@ public:
         e.entity.bounds = rect;
         e.entity.active = true;
         e.health.SetMax(hp);
+        e.entity.tag = EntityTag::Enemy;
         enemies_.push_back(e);
     }
 

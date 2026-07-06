@@ -9,6 +9,9 @@
 class Camera2D
 {
 public:
+    int ViewW() const { return viewW_; }
+    int ViewH() const { return viewH_; }
+
     void SetViewSize(int w, int h)
     {
         viewW_ = w;
@@ -45,7 +48,7 @@ public:
         pos_.y = std::clamp(pos_.y, 0.0, static_cast<double>(maxY));
     }
 
-    // World -> Screen helpers (int rounding matches your current behavior)
+    // World -> Screen helpers
     int WorldToScreenX(double worldX) const { return static_cast<int>(std::round(worldX - pos_.x)); }
     int WorldToScreenY(double worldY) const { return static_cast<int>(std::round(worldY - pos_.y)); }
 
@@ -67,13 +70,36 @@ public:
         };
     }
 
-    // Screen -> World (very useful later for editor picking)
+    // Screen -> World 
     SDL_Point ScreenToWorldPoint(const SDL_Point& pScreen) const
     {
         return SDL_Point{
             static_cast<int>(std::round(pScreen.x + pos_.x)),
             static_cast<int>(std::round(pScreen.y + pos_.y))
         };
+    }
+
+    void FollowTargetInstant(const Vec2& targetCenter, int worldW, int worldH)
+    {
+        CenterOn(targetCenter);
+        SetWorldSize(worldW, worldH);
+        ClampToWorld();
+    }
+
+    void FollowTargetSmooth(const Vec2& targetCenter, int worldW, int worldH, double dtSeconds, double followSpeed = 8.0)
+    {
+        Vec2 desired{
+            targetCenter.x - viewW_ * 0.5,
+            targetCenter.y - viewH_ * 0.5
+        };
+
+        const double t = 1.0 - std::exp(-followSpeed * dtSeconds);
+
+        pos_.x += (desired.x - pos_.x) * t;
+        pos_.y += (desired.y - pos_.y) * t;
+
+        SetWorldSize(worldW, worldH);
+        ClampToWorld();
     }
 
 private:

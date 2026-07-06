@@ -32,6 +32,7 @@ public:
         t.entity.bounds = rect;
         t.entity.active = true;
         t.health.SetMax(hp);
+        t.entity.tag = EntityTag::Destructible;
         targets_.push_back(t);
     }
 

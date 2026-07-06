@@ -383,11 +383,13 @@ void DemoScene::Update(double dtSeconds, const Input& input, const EngineContext
 
     // Camera follow (center player)
     camera_.SetViewSize(ctx.logicalW, ctx.logicalH);
-    camera_.SetWorldSize(worldW_, worldH_);
-    camera_.CenterOn(Vec2{ worldPos_.x + w_ * 0.5, worldPos_.y + h_ * 0.5 });
-    camera_.ClampToWorld();
 
-    // (temporary mirror for compatibility this step)
+    camera_.FollowTargetInstant(
+        Vec2{ worldPos_.x + w_ * 0.5, worldPos_.y + h_ * 0.5 },
+        worldW_,
+        worldH_
+    );
+
     camPos_ = camera_.Position();
 
     // Update turret aim frame from mouse position
