@@ -35,6 +35,8 @@ public:
         e.entity.active = true;
         e.health.SetMax(hp);
         e.entity.tag = EntityTag::Enemy;
+        e.entity.layer = CollisionLayer2D::Enemy;
+        e.entity.collisionMask = CollisionLayer2D::Player | CollisionLayer2D::Bullet | CollisionLayer2D::World;
         enemies_.push_back(e);
     }
 

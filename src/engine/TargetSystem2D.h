@@ -33,6 +33,8 @@ public:
         t.entity.active = true;
         t.health.SetMax(hp);
         t.entity.tag = EntityTag::Destructible;
+        t.entity.layer = CollisionLayer2D::Destructible;
+        t.entity.collisionMask = CollisionLayer2D::Bullet | CollisionLayer2D::World;
         targets_.push_back(t);
     }
 

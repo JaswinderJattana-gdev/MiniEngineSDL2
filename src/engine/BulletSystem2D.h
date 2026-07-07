@@ -51,6 +51,8 @@ public:
         b.life = lifeSeconds;
         b.damage = damage;
         b.entity.tag = EntityTag::Bullet;
+        b.entity.layer = CollisionLayer2D::Bullet;
+        b.entity.collisionMask = CollisionLayer2D::Enemy | CollisionLayer2D::Destructible | CollisionLayer2D::World;
         bullets_.push_back(b);
     }
 
