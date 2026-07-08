@@ -61,6 +61,11 @@ struct Entity2D
     CollisionLayer2D collisionMask = CollisionLayer2D::None;
 };
 
+inline bool CanInteract(const Entity2D& a, const Entity2D& b)
+{
+    return HasLayer(a.collisionMask, b.layer) || HasLayer(b.collisionMask, a.layer);
+}
+
 class EntityIdGenerator2D
 {
 public:
