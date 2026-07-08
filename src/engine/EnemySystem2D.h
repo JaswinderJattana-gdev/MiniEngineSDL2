@@ -127,6 +127,26 @@ public:
         return false;
     }
 
+    bool HitAndDamageFirst(const Entity2D& sourceEntity, int damage)
+    {
+        for (auto& e : enemies_)
+        {
+            if (e.health.IsDead())
+                continue;
+
+            if (!CanInteract(sourceEntity, e.entity))
+                continue;
+
+            if (SDL_HasIntersection(&sourceEntity.bounds, &e.entity.bounds))
+            {
+                e.health.ApplyDamage(damage);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     bool AnyEnemyIntersects(const SDL_Rect& rect) const
     {
         for (const auto& e : enemies_)

@@ -359,12 +359,10 @@ void DemoScene::Update(double dtSeconds, const Input& input, const EngineContext
         std::remove_if(activeBullets.begin(), activeBullets.end(),
             [this](const BulletSystem2D::Bullet& b)
             {
-                SDL_Rect br = bullets_.BulletRect(b);
-
-                if (targets_.HitAndDamageFirst(br, b.damage))
+                if (targets_.HitAndDamageFirst(b.entity, b.damage))
                     return true;
 
-                if (enemies_.HitAndDamageFirst(br, b.damage))
+                if (enemies_.HitAndDamageFirst(b.entity, b.damage))
                     return true;
 
                 return false;

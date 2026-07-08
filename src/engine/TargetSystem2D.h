@@ -71,6 +71,26 @@ public:
         return false;
     }
 
+    bool HitAndDamageFirst(const Entity2D& sourceEntity, int damage)
+    {
+        for (auto& t : targets_)
+        {
+            if (t.health.IsDead())
+                continue;
+
+            if (!CanInteract(sourceEntity, t.entity))
+                continue;
+
+            if (SDL_HasIntersection(&sourceEntity.bounds, &t.entity.bounds))
+            {
+                t.health.ApplyDamage(damage);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     void RemoveDead()
     {
         targets_.erase(
