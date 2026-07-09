@@ -161,6 +161,23 @@ public:
         return false;
     }
 
+    bool AnyEnemyIntersects(const Entity2D& sourceEntity) const
+    {
+        for (const auto& e : enemies_)
+        {
+            if (e.health.IsDead())
+                continue;
+
+            if (!CanInteract(sourceEntity, e.entity))
+                continue;
+
+            if (SDL_HasIntersection(&sourceEntity.bounds, &e.entity.bounds))
+                return true;
+        }
+
+        return false;
+    }
+
     void RemoveDead()
     {
         enemies_.erase(

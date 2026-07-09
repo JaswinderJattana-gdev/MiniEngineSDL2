@@ -416,10 +416,13 @@ void DemoScene::Update(double dtSeconds, const Input& input, const EngineContext
         enemies_.Update(dtSeconds);
     }
 
-	// Check enemy vs player collisions and apply damage
-    SDL_Rect playerFeet = FeetRectWorld();
+	// Update player entity for collision detection
+    playerEntity_.position = worldPos_;
+    playerEntity_.velocity = Vec2{ 0.0, 0.0 };
+    playerEntity_.bounds = FeetRectWorld();
 
-    if (playerDamageCooldown_ <= 0.0 && enemies_.AnyEnemyIntersects(playerFeet))
+	// Check enemy vs player collisions and apply damage
+    if (playerDamageCooldown_ <= 0.0 && enemies_.AnyEnemyIntersects(playerEntity_))
     {
         playerHealth_.ApplyDamage(enemyContactDamage_);
         playerDamageCooldown_ = playerDamageInterval_;
@@ -946,6 +949,11 @@ void DemoScene::OnEnter()
 
 	// Player state
     playerHealth_.SetMax(100);
+    playerEntity_.id = 1;
+    playerEntity_.tag = EntityTag::Player;
+    playerEntity_.layer = CollisionLayer2D::Player;
+    playerEntity_.collisionMask = CollisionLayer2D::Enemy | CollisionLayer2D::Pickup | CollisionLayer2D::Trigger;
+    playerEntity_.active = true;
 
     targets_.Clear();
 

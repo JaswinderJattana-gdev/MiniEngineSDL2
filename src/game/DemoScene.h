@@ -14,6 +14,7 @@
 #include "../engine/EnemySystem2D.h"
 #include "../engine/WeaponSystem2D.h"
 #include "../engine/HealthSystem2D.h"
+#include "../engine/Entity2D.h"
 #include <vector>
 #include <SDL.h>
 #include <array>
@@ -91,6 +92,8 @@ public:
 private:
     SceneManager& scenes_;
     const EngineContext& ctx_;
+
+    Entity2D playerEntity_;
 
     Vec2 pos_{ 350.0, 200.0 };
     double speed_ = 300.0;
