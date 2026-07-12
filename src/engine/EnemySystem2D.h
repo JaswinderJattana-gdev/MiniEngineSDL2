@@ -40,6 +40,17 @@ public:
         enemies_.push_back(e);
     }
 
+    void SetCollisionWorld(
+        int worldW,
+        int worldH,
+        const std::vector<SDL_Rect>* obstacles
+    )
+    {
+        worldW_ = worldW;
+        worldH_ = worldH;
+        obstacles_ = obstacles;
+    }
+
     void Render(Renderer& renderer, const Camera2D& cam) const
     {
         renderer.SetDrawColor(120, 60, 200, 255);
@@ -79,10 +90,53 @@ public:
             if (e.health.IsDead() || !e.entity.active)
                 continue;
 
-            e.entity.position += e.entity.velocity * dtSeconds;
+            const Vec2 previous = e.entity.position;
+            const Vec2 desired =
+                e.entity.position + e.entity.velocity * dtSeconds;
 
-            e.entity.bounds.x = static_cast<int>(std::round(e.entity.position.x));
-            e.entity.bounds.y = static_cast<int>(std::round(e.entity.position.y));
+            const double maxX = std::max(
+                0.0,
+                static_cast<double>(worldW_ - e.entity.bounds.w)
+            );
+
+            const double maxY = std::max(
+                0.0,
+                static_cast<double>(worldH_ - e.entity.bounds.h)
+            );
+
+            // X-axis movement
+            e.entity.position.x = std::clamp(
+                desired.x,
+                0.0,
+                maxX
+            );
+
+            e.entity.bounds.x =
+                static_cast<int>(std::round(e.entity.position.x));
+
+            if (IntersectsObstacle(e.entity.bounds))
+            {
+                e.entity.position.x = previous.x;
+                e.entity.bounds.x =
+                    static_cast<int>(std::round(previous.x));
+            }
+
+            // Y-axis movement
+            e.entity.position.y = std::clamp(
+                desired.y,
+                0.0,
+                maxY
+            );
+
+            e.entity.bounds.y =
+                static_cast<int>(std::round(e.entity.position.y));
+
+            if (IntersectsObstacle(e.entity.bounds))
+            {
+                e.entity.position.y = previous.y;
+                e.entity.bounds.y =
+                    static_cast<int>(std::round(previous.y));
+            }
         }
     }
 
@@ -219,6 +273,20 @@ public:
         return true;
     }
 
+    bool IntersectsObstacle(const SDL_Rect& rect) const
+    {
+        if (!obstacles_)
+            return false;
+
+        for (const auto& obstacle : *obstacles_)
+        {
+            if (SDL_HasIntersection(&rect, &obstacle))
+                return true;
+        }
+
+        return false;
+    }
+
     int AliveCount() const
     {
         int count = 0;
@@ -243,4 +311,7 @@ public:
 private:
     std::vector<Enemy> enemies_;
     EntityIdGenerator2D ids_;
+    int worldW_ = 0;
+    int worldH_ = 0;
+    const std::vector<SDL_Rect>* obstacles_ = nullptr;
 };

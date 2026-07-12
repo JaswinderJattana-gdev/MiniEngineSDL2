@@ -973,7 +973,13 @@ void DemoScene::OnEnter()
         targets_.AddTarget(SDL_Rect{ 1400, 900, 48, 48 }, 3);
     }
 
+	// Enemy state
     enemies_.Clear();
+    enemies_.SetCollisionWorld(
+        worldW_,
+        worldH_,
+        &obstacles_
+    );
 
 	// Load enemies from level file if available, otherwise fallback to test enemies
     if (!loadedEnemies_.empty())
