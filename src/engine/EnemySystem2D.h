@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <SDL.h>
 #include <cmath>
+#include <cstdint>
 
 #include "math/Vec2.h"
 #include "HealthSystem2D.h"
@@ -104,7 +105,7 @@ public:
                 static_cast<double>(worldH_ - e.entity.bounds.h)
             );
 
-            // X-axis movement
+            // Try X-axis movement first.
             e.entity.position.x = std::clamp(
                 desired.x,
                 0.0,
@@ -114,14 +115,17 @@ public:
             e.entity.bounds.x =
                 static_cast<int>(std::round(e.entity.position.x));
 
-            if (IntersectsObstacle(e.entity.bounds))
+            if (IsMovementBlocked(
+                e.entity.bounds,
+                e.entity.id
+            ))
             {
                 e.entity.position.x = previous.x;
                 e.entity.bounds.x =
                     static_cast<int>(std::round(previous.x));
             }
 
-            // Y-axis movement
+            // Try Y-axis movement second.
             e.entity.position.y = std::clamp(
                 desired.y,
                 0.0,
@@ -131,7 +135,10 @@ public:
             e.entity.bounds.y =
                 static_cast<int>(std::round(e.entity.position.y));
 
-            if (IntersectsObstacle(e.entity.bounds))
+            if (IsMovementBlocked(
+                e.entity.bounds,
+                e.entity.id
+            ))
             {
                 e.entity.position.y = previous.y;
                 e.entity.bounds.y =
@@ -273,20 +280,6 @@ public:
         return true;
     }
 
-    bool IntersectsObstacle(const SDL_Rect& rect) const
-    {
-        if (!obstacles_)
-            return false;
-
-        for (const auto& obstacle : *obstacles_)
-        {
-            if (SDL_HasIntersection(&rect, &obstacle))
-                return true;
-        }
-
-        return false;
-    }
-
     int AliveCount() const
     {
         int count = 0;
@@ -314,4 +307,47 @@ private:
     int worldW_ = 0;
     int worldH_ = 0;
     const std::vector<SDL_Rect>* obstacles_ = nullptr;
+
+    bool IntersectsObstacle(const SDL_Rect& rect) const
+    {
+        if (!obstacles_)
+            return false;
+
+        for (const auto& obstacle : *obstacles_)
+        {
+            if (SDL_HasIntersection(&rect, &obstacle))
+                return true;
+        }
+
+        return false;
+    }
+
+    bool IntersectsOtherEnemy(
+        const SDL_Rect& rect,
+        uint32_t ignoredEntityId
+    ) const
+    {
+        for (const auto& other : enemies_)
+        {
+            if (other.entity.id == ignoredEntityId)
+                continue;
+
+            if (!other.entity.active || other.health.IsDead())
+                continue;
+
+            if (SDL_HasIntersection(&rect, &other.entity.bounds))
+                return true;
+        }
+
+        return false;
+    }
+
+    bool IsMovementBlocked(
+        const SDL_Rect& rect,
+        uint32_t ignoredEntityId
+    ) const
+    {
+        return IntersectsObstacle(rect) ||
+            IntersectsOtherEnemy(rect, ignoredEntityId);
+    }
 };
