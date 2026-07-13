@@ -46,6 +46,8 @@ add_executable(MiniEngineSDL2
 
     src/engine/CollisionWorld2D.h
     src/engine/CollisionWorld2D.cpp
+    src/engine/NavigationGrid2D.h     
+    src/engine/NavigationGrid2D.cpp
 
     src/engine/LevelData.h
     src/engine/LevelIO.h
@@ -81,7 +83,7 @@ add_executable(MiniEngineSDL2
     src/game/PauseScene.h
     src/game/GamePaths.h
 
- "src/engine/HealthSystem2D.h" "src/engine/HealthSystem2D.cpp" "src/engine/EnemySystem2D.h" "src/engine/EnemySystem2D.cpp" "src/game/GamePaths.h" "src/engine/TimerManager2D.h" "src/engine/TimerManager2D.cpp" "src/engine/Entity2D.h" "src/engine/Entity2D.cpp")
+ "src/engine/HealthSystem2D.h" "src/engine/HealthSystem2D.cpp" "src/engine/EnemySystem2D.h" "src/engine/EnemySystem2D.cpp" "src/game/GamePaths.h" "src/engine/TimerManager2D.h" "src/engine/TimerManager2D.cpp" "src/engine/Entity2D.h" "src/engine/Entity2D.cpp" "src/engine/NavigationGrid2D.h" "src/engine/NavigationGrid2D.cpp")
 
 target_include_directories(MiniEngineSDL2 PRIVATE
     src
