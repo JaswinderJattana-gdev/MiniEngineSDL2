@@ -15,6 +15,8 @@
 #include "../engine/WeaponSystem2D.h"
 #include "../engine/HealthSystem2D.h"
 #include "../engine/Entity2D.h"
+#include "../engine/NavigationGrid2D.h"
+
 #include <vector>
 #include <SDL.h>
 #include <array>
@@ -127,10 +129,6 @@ private:
     std::vector<LevelObjectData> loadedEnemies_;
     std::vector<LevelObjectData> loadedDestructibles_;
 
-    TargetSystem2D targets_;
-
-    EnemySystem2D enemies_;
-
     WeaponInstance2D primaryWeapon_;
 
     HealthComponent2D playerHealth_;
@@ -142,6 +140,12 @@ private:
     Camera2D camera_;
 
     ParticleSystem2D particles_;
+
+    NavigationGrid2D navigationGrid_;
+
+    TargetSystem2D targets_;
+
+    EnemySystem2D enemies_;
 
     CollisionWorld2D collision_;
 

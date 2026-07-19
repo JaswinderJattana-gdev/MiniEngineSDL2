@@ -4,6 +4,8 @@
 #include <vector>
 
 #include "math/Vec2.h"
+#include "Renderer.h"
+#include "Camera2D.h"
 
 class NavigationGrid2D
 {
@@ -34,6 +36,10 @@ public:
     int Columns() const { return columns_; }
     int Rows() const { return rows_; }
 
+    void DebugRender(
+        Renderer& renderer,
+        const Camera2D& camera
+    ) const;
 private:
     bool IsCellInside(int cellX, int cellY) const;
     int CellIndex(int cellX, int cellY) const;
@@ -44,7 +50,6 @@ private:
         int cellY,
         const std::vector<SDL_Rect>& obstacles
     ) const;
-
 private:
     int worldW_ = 0;
     int worldH_ = 0;

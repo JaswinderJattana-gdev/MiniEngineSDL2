@@ -92,6 +92,106 @@ bool NavigationGrid2D::IsCellWalkable(int cellX, int cellY) const
     return walkable_[CellIndex(cellX, cellY)] != 0;
 }
 
+void NavigationGrid2D::DebugRender(
+    Renderer& renderer,
+    const Camera2D& camera
+) const
+{
+    if (!IsBuilt())
+        return;
+
+    SDL_Renderer* rawRenderer = renderer.Raw();
+
+    // Save the renderer state so debug drawing cannot affect
+    // enemies, targets, bullets, sprites, or the HUD.
+    Uint8 oldR = 255;
+    Uint8 oldG = 255;
+    Uint8 oldB = 255;
+    Uint8 oldA = 255;
+
+    SDL_BlendMode oldBlendMode = SDL_BLENDMODE_NONE;
+
+    SDL_GetRenderDrawColor(
+        rawRenderer,
+        &oldR,
+        &oldG,
+        &oldB,
+        &oldA
+    );
+
+    SDL_GetRenderDrawBlendMode(
+        rawRenderer,
+        &oldBlendMode
+    );
+
+    SDL_SetRenderDrawBlendMode(
+        rawRenderer,
+        SDL_BLENDMODE_NONE
+    );
+
+    for (int y = 0; y < rows_; ++y)
+    {
+        for (int x = 0; x < columns_; ++x)
+        {
+            SDL_Rect worldRect{
+                x * cellSize_,
+                y * cellSize_,
+                cellSize_,
+                cellSize_
+            };
+
+            if (worldRect.x + worldRect.w > worldW_)
+                worldRect.w = worldW_ - worldRect.x;
+
+            if (worldRect.y + worldRect.h > worldH_)
+                worldRect.h = worldH_ - worldRect.y;
+
+            SDL_Rect screenRect =
+                camera.WorldToScreenRect(worldRect);
+
+            if (IsCellWalkable(x, y))
+            {
+                SDL_SetRenderDrawColor(
+                    rawRenderer,
+                    0,
+                    220,
+                    0,
+                    255
+                );
+            }
+            else
+            {
+                SDL_SetRenderDrawColor(
+                    rawRenderer,
+                    255,
+                    40,
+                    40,
+                    255
+                );
+            }
+
+            SDL_RenderDrawRect(
+                rawRenderer,
+                &screenRect
+            );
+        }
+    }
+
+    // Restore the exact state that existed before debug drawing.
+    SDL_SetRenderDrawColor(
+        rawRenderer,
+        oldR,
+        oldG,
+        oldB,
+        oldA
+    );
+
+    SDL_SetRenderDrawBlendMode(
+        rawRenderer,
+        oldBlendMode
+    );
+}
+
 SDL_Point NavigationGrid2D::WorldToCell(
     const Vec2& worldPosition
 ) const

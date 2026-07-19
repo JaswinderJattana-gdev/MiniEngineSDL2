@@ -16,6 +16,7 @@
 #include "../engine/LevelIO.h"
 #include "../engine/AssetManager.h"
 #include "../engine/SpriteSheet.h"
+#include "../engine/NavigationGrid2D.h"
 
 #include <algorithm>
 #include <memory>
@@ -501,29 +502,6 @@ void DemoScene::Render(Renderer& renderer, const EngineContext& ctx)
 	// Draw bullets (world -> screen)
     bullets_.Render(renderer, camForRender);
 
-	// Debug draw
-    if (debugDraw_)
-    {
-        // Draw obstacles filled (so collision space is obvious)
-        renderer.SetDrawColor(80, 80, 80, 80);
-        SDL_SetRenderDrawBlendMode(renderer.Raw(), SDL_BLENDMODE_BLEND);
-        for (const auto& o : obstacles_)
-        {
-            const int ox = static_cast<int>(std::round(o.x - cam.x));
-            const int oy = static_cast<int>(std::round(o.y - cam.y));
-            SDL_Rect r{ ox, oy, o.w, o.h };
-            SDL_SetRenderDrawColor(renderer.Raw(), 80, 80, 80, 80);
-            SDL_RenderFillRect(renderer.Raw(), &r);
-        }
-
-        // Feet collider outline
-        SDL_Rect feet = FeetRectWorld();
-        const int fx = static_cast<int>(std::round(feet.x - cam.x));
-        const int fy = static_cast<int>(std::round(feet.y - cam.y));
-        renderer.SetDrawColor(255, 0, 0, 255);
-        renderer.DrawRect(fx, fy, feet.w, feet.h);
-    }
-
     // Player screen position (world -> screen, with shake)
     const int screenX = static_cast<int>(std::round(worldPos_.x - cam.x));
     const int screenY = static_cast<int>(std::round(worldPos_.y - cam.y));
@@ -605,6 +583,126 @@ void DemoScene::Render(Renderer& renderer, const EngineContext& ctx)
 
             renderer.FillRect(mx - 2, my - 2, 5, 5);
         }
+    }
+
+    // Debug collision and navigation overlays.
+    // Draw after world entities, before the HUD.
+    if (debugDraw_)
+    {
+        SDL_Renderer* rawRenderer = renderer.Raw();
+
+        Uint8 oldR = 255;
+        Uint8 oldG = 255;
+        Uint8 oldB = 255;
+        Uint8 oldA = 255;
+
+        SDL_BlendMode oldBlendMode = SDL_BLENDMODE_NONE;
+
+        SDL_GetRenderDrawColor(
+            rawRenderer,
+            &oldR,
+            &oldG,
+            &oldB,
+            &oldA
+        );
+
+        SDL_GetRenderDrawBlendMode(
+            rawRenderer,
+            &oldBlendMode
+        );
+
+        // Navigation outlines.
+        navigationGrid_.DebugRender(
+            renderer,
+            camForRender
+        );
+
+        // Transparent obstacle collision areas.
+        SDL_SetRenderDrawBlendMode(
+            rawRenderer,
+            SDL_BLENDMODE_BLEND
+        );
+
+        for (const SDL_Rect& obstacle : obstacles_)
+        {
+            SDL_Rect screenRect{
+                static_cast<int>(
+                    std::round(obstacle.x - cam.x)
+                ),
+                static_cast<int>(
+                    std::round(obstacle.y - cam.y)
+                ),
+                obstacle.w,
+                obstacle.h
+            };
+
+            SDL_SetRenderDrawColor(
+                rawRenderer,
+                80,
+                80,
+                80,
+                80
+            );
+
+            SDL_RenderFillRect(
+                rawRenderer,
+                &screenRect
+            );
+
+            SDL_SetRenderDrawColor(
+                rawRenderer,
+                200,
+                200,
+                200,
+                255
+            );
+
+            SDL_RenderDrawRect(
+                rawRenderer,
+                &screenRect
+            );
+        }
+
+        // Player feet collider.
+        const SDL_Rect feetWorld = FeetRectWorld();
+
+        SDL_Rect feetScreen{
+            static_cast<int>(
+                std::round(feetWorld.x - cam.x)
+            ),
+            static_cast<int>(
+                std::round(feetWorld.y - cam.y)
+            ),
+            feetWorld.w,
+            feetWorld.h
+        };
+
+        SDL_SetRenderDrawColor(
+            rawRenderer,
+            255,
+            0,
+            255,
+            255
+        );
+
+        SDL_RenderDrawRect(
+            rawRenderer,
+            &feetScreen
+        );
+
+        // Restore renderer state before drawing the HUD.
+        SDL_SetRenderDrawColor(
+            rawRenderer,
+            oldR,
+            oldG,
+            oldB,
+            oldA
+        );
+
+        SDL_SetRenderDrawBlendMode(
+            rawRenderer,
+            oldBlendMode
+        );
     }
 
     // HUD panel (screen space)
@@ -928,6 +1026,23 @@ void DemoScene::OnEnter()
         
     }
 
+    // Build navigation data from the loaded world.
+    navigationGrid_.Build(
+        worldW_,
+        worldH_,
+        64,
+        obstacles_
+    );
+
+    SDL_Log(
+        "Navigation grid: built=%d columns=%d rows=%d cellSize=%d",
+        navigationGrid_.IsBuilt() ? 1 : 0,
+        navigationGrid_.Columns(),
+        navigationGrid_.Rows(),
+        navigationGrid_.CellSize()
+    );
+
+	// Setup collision world
     collision_.SetWorldSize(worldW_, worldH_);
     collision_.SetObstacles(obstacles_);
 
