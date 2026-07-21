@@ -54,14 +54,15 @@ public:
 
     void Render(Renderer& renderer, const Camera2D& cam) const
     {
-        renderer.SetDrawColor(120, 60, 200, 255);
-
         for (const auto& e : enemies_)
         {
             if (e.health.IsDead())
                 continue;
 
             SDL_Rect r = cam.WorldToScreenRect(e.entity.bounds);
+
+            // Enemy body
+            renderer.SetDrawColor(120, 60, 200, 255);
             renderer.FillRect(r.x, r.y, r.w, r.h);
 
             // HP bar background
@@ -71,7 +72,8 @@ public:
             // HP bar fill
             const double t =
                 (e.health.maxHp > 0)
-                ? static_cast<double>(e.health.hp) / static_cast<double>(e.health.maxHp)
+                ? static_cast<double>(e.health.hp) /
+                static_cast<double>(e.health.maxHp)
                 : 0.0;
 
             renderer.SetDrawColor(0, 220, 0, 255);
