@@ -4,12 +4,14 @@
 #include <SDL.h>
 #include <cmath>
 #include <cstdint>
+#include <cstddef>
 
 #include "math/Vec2.h"
 #include "HealthSystem2D.h"
 #include "Renderer.h"
 #include "Camera2D.h"
 #include "Entity2D.h"
+#include "NavigationGrid2D.h"
 
 class EnemySystem2D
 {
@@ -18,6 +20,11 @@ public:
     {
         Entity2D entity{};
         HealthComponent2D health{};
+
+        std::vector<Vec2> path{};
+        std::size_t pathIndex = 0;
+
+        double pathRecalculateTimer = 0.0;
     };
 
     void Clear()
@@ -170,6 +177,92 @@ public:
             }
 
             e.entity.velocity = toTarget.Normalized() * speed;
+        }
+    }
+
+    void SetVelocityAlongPath(
+        const NavigationGrid2D& navigationGrid,
+        const Vec2& target,
+        double speed,
+        double dtSeconds
+    )
+    {
+        constexpr double pathRecalculateInterval = 0.5;
+        constexpr double waypointReachDistance = 10.0;
+
+        for (auto& e : enemies_)
+        {
+            if (e.health.IsDead() || !e.entity.active)
+                continue;
+
+            e.pathRecalculateTimer -= dtSeconds;
+
+            Vec2 center{
+                e.entity.position.x +
+                    e.entity.bounds.w * 0.5,
+
+                e.entity.position.y +
+                    e.entity.bounds.h * 0.5
+            };
+
+            // Recalculate periodically instead of running A* every frame.
+            if (e.pathRecalculateTimer <= 0.0)
+            {
+                e.path = navigationGrid.FindPath(
+                    center,
+                    target
+                );
+
+                // The first point is normally the enemy's current cell.
+                e.pathIndex =
+                    e.path.size() > 1
+                    ? 1
+                    : 0;
+
+                e.pathRecalculateTimer =
+                    pathRecalculateInterval;
+            }
+
+            if (e.path.empty() ||
+                e.pathIndex >= e.path.size())
+            {
+                e.entity.velocity = Vec2{ 0.0, 0.0 };
+                continue;
+            }
+
+            Vec2 waypoint = e.path[e.pathIndex];
+            Vec2 toWaypoint = waypoint - center;
+
+            // Move on to the next point once the current point is reached.
+            while (
+                toWaypoint.Length() <= waypointReachDistance &&
+                e.pathIndex + 1 < e.path.size()
+                )
+            {
+                ++e.pathIndex;
+
+                waypoint = e.path[e.pathIndex];
+                toWaypoint = waypoint - center;
+            }
+
+            // Final waypoint reached.
+            if (
+                toWaypoint.Length() <= waypointReachDistance &&
+                e.pathIndex + 1 >= e.path.size()
+                )
+            {
+                e.entity.velocity = Vec2{ 0.0, 0.0 };
+                continue;
+            }
+
+            if (toWaypoint.Length() <= 0.0001)
+            {
+                e.entity.velocity = Vec2{ 0.0, 0.0 };
+                continue;
+            }
+
+            e.entity.velocity =
+                toWaypoint.Normalized() * speed;
         }
     }
 

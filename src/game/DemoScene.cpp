@@ -413,7 +413,12 @@ void DemoScene::Update(double dtSeconds, const Input& input, const EngineContext
 	// Update enemies to move toward player (only if level not won)
     if (!levelWon_)
     {
-        enemies_.SetVelocityTowardPoint(playerCenter, 80.0);
+        enemies_.SetVelocityAlongPath(
+            navigationGrid_,
+            worldPos_,
+            80.0,
+            dtSeconds
+        );
         enemies_.Update(dtSeconds);
     }
 
